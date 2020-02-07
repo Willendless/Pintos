@@ -15,16 +15,16 @@ Design Document for Project 1: User Programs
 #### Data structures and functions
 
 1. PROCESS_EXEUTE
-```c
-tid_t process_execute (const char *file_name);
-```
-+ correct the FILE_NAME argument passed to thread_create
+    ```c
+    tid_t process_execute (const char *file_name);
+    ```
+    + correct the FILE_NAME argument passed to thread_create
 
 2.  START_PROCESS
-```c
-static void start_process (void *file_name_);
-```
-+ using STRTOK_R to get first argument from FILE_NAME to load file and push all into stack frame 
+    ```c
+    static void start_process (void *file_name_);
+    ```
+    + using STRTOK_R to get every argument from FILE_NAME using the first one as argument to LOAD() file and after successful LOAD() push all into stack frame 
 
 #### Algorithms
 
@@ -37,7 +37,7 @@ static void start_process (void *file_name_);
     4. argv[argc]: push null
     3. argv[.]: push every string address according to the length of every string 
     3. argv: push address of argv[0]
-    4. ra: push 0 as dump return address
+    4. ra: push 0 as dumb return address
 
 #### Synchronization
 
@@ -47,7 +47,7 @@ static void start_process (void *file_name_);
 
 #### Rationale
 
-1. using local variable but not global variable to store temporary token
+1. using local variable but not global variable to store temporary string token
     + if using local variable, it can be released automatically after function return
     + if using dynamic memory, it must be guaranteed to be released before THREAD_EXIT()
 
@@ -59,15 +59,58 @@ static void start_process (void *file_name_);
 #### Data structures and functions
 
 1. SYSCALL_HANDLER
-```c
-static void syscall_handler (struct intr_frame *f UNUSED);
-```
+    ```c
+    static void syscall_handler (struct intr_frame *f UNUSED);
+    ```
+    1. verify esp
+    2. dispatch syscall according to argv[1]
+    3. verify argument if syscall has pointer argument
 
-+ verify esp
+2. struct thread
+    ```c
+    struct thread
+    {
+        /* Owned by thread.c. */
+        tid_t tid;                          /* Thread identifier. */
+        enum thread_status status;          /* Thread state. */
+        char name[16];                      /* Name (for debugging purposes). */
+        uint8_t *stack;                     /* Saved stack pointer. */
+        int priority;                       /* Priority. */
+        struct list_elem allelem;           /* List element for all threads list. */
+
+        /* Shared between thread.c and synch.c. */
+        struct list_elem elem;              /* List element. */
+
+    #ifdef USERPROG
+        /* Owned by userprog/process.c. */
+        uint32_t *pagedir;                  /* Page directory. */
+
+        /*modified*/
+        struct list childs;
+        struct semaphore parent_wait;
+    #endif
+
+        /* Owned by thread.c. */
+        unsigned magic;                     /* Detects stack overflow. */
+    };
+    ```
 
 
 
 #### Algorithms
+
+1. Accessing user memory(pointer verify)
+    + if null
+    + if point to user addr 
+        + using IS_USER_ADDR()
+    + if point to mapped page 
+        + using PAGEDIR_GET_PAGE()
+    + if cross boundary
+        + verify address of last byte
+
+2. exec
+    + verify argument
+    + 
 
 #### Synchronization
 
@@ -77,7 +120,7 @@ static void syscall_handler (struct intr_frame *f UNUSED);
 
 #### Data structures and functions
 
-#### ALgorithms
+#### Algorithms
 
 #### Synchronization
 
