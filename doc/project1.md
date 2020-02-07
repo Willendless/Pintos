@@ -43,8 +43,8 @@ Design Document for Project 1: User Programs
     6. ra: push 0 as dumb return address
 
 #### Synchronization
-
-1. fn_copy
+Shared resource: fn_copy and file_name
+Our code doesn't modify these two variables, or access them before they are created or after they are destroyed. There is no synchronization issue here. 
 
 #### Rationale
 
@@ -156,29 +156,33 @@ Design Document for Project 1: User Programs
     static void syscall_handler (struct intr_frame *f UNUSED);
     ```
     + Dispatch system call.
+
 + PROCESS_EXEUTE
     ```c
     tid_t thread_create (const char *name, int priority,
                thread_func *function, void *aux);
     ```
     + Initialize struct THREAD for child process.
+
 + PROCESS_EXECUTE
     ```c
     tid_t process_execute (const char *file_name);
     ```
     + Synchronize parent and child process, parent process waits for child's LOAD().
+
 + START_PROCESS
     ```c
     static void start_process (void *file_name_);
     ```
     + Synchronize parent and child process
+
 + PROCESS_WAIT
     ```c
     int process_wait (tid_t child_tid UNUSED);
     ```   
     + Verify TID and block in struct semaphore PARENT_WAIT.
 
-5. PROCESS_EXIT
++ PROCESS_EXIT
     ```c
     void process_exit (void);
     ```
@@ -197,23 +201,25 @@ Design Document for Project 1: User Programs
             + verify address of last byte
     2. dispatch syscall according to syscall number in lib/syscall-nr.h
     3. verify pointer before execute syscall
+
 2. exec
     + call PROCESS_EXECUTE()
         1. init CHILDS list
         2. init semaphore PARENT_WAIT
         3. add CHILD_ELEM into current's CHILDS
+
 3. exit
     + call PROCESS_EXIT()
         1. for every thread struct in the CHILD list, release it if its state is THREAD_DYING
         2. change status of current thread
         3. if parent_wait->waiters is not empty, SEMA_UP(parent_wait)
+
 4. wait
     1. call PROCESS_WAIT()
         1. if CHILD_TID is not a child thread or invalid(search it in the CHILD list), return -1, otherwise find the child's thread struct
         2. SEMA_DOWN(parent_wait)
     2. after child changes to THREAD_DYING, release its struct THREAD from CHILD lists
  
-
 #### Synchronization
 
 1. struct semaphore parent_wait;
@@ -235,7 +241,6 @@ Design Document for Project 1: User Programs
     ```c
     static struct lock filesystem_lock;           /* Filesystem operation global lock */
     ```
-
 
 *Modifying following data structure*:
 + struct thread
@@ -477,5 +482,4 @@ Design Document for Project 1: User Programs
     3. file does not exist in file system
     4. file not allowed to be deleted by user programs(such as system files)
     The first three cases should be tested. For the fourth test, it may cause damage in system. So better use a dummy system file to test.
-
 
