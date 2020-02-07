@@ -4,7 +4,7 @@ Design Document for Project 1: User Programs
 ## Group Members
 
 * Jiarui Li <jiaruili@berkeley.edu>
-* Xiang Zhang <xzhang1048576@berleley.edu>
+* Xiang Zhang <xzhang1048576@berkeley.edu>
 * Joel Kattapuram <joelkattapuram@berkeley.edu>
 * Kallan Bao <kallanbao@berkeley.edu>
 
@@ -59,7 +59,7 @@ Design Document for Project 1: User Programs
 
 #### Data structures and functions
 
-*Adding following data structure*:
+*Adding following data structure:*
 + struct wait_status
     ```c
     struct wait_status
@@ -73,8 +73,7 @@ Design Document for Project 1: User Programs
     }
     ```
 
-*Modifying following data structure*
-
+*Modifying following data structure:*
 + struct thread
     ```c
     struct thread
@@ -105,7 +104,7 @@ Design Document for Project 1: User Programs
     };
     ```
 
-*Adding following functions*
+*Adding following functions:*
 + PRACTICE
     ```c
     int syscall_practice(int arg) {
@@ -230,13 +229,13 @@ Design Document for Project 1: User Programs
 ### Task 3: File Operation Syscalls
 
 #### Data structures and functions
-*Adding following global variable*:
+*Adding following global variable:*
 + lock file_system_lock
     ```c
     static struct lock file_system_lock;           /* Filesystem operation global lock */
     ```
 
-*Modifying following data structure*:
+*Modifying following data structure:*
 + struct thread
     ```c
     struct thread
@@ -325,12 +324,17 @@ Design Document for Project 1: User Programs
     Close the file opened as fd.
 
 *Modifying following functions:*
-
 + SYSCALL_HANDLER
     ```c
     static void syscall_handler (struct intr_frame *f UNUSED);
     ```
     Add switch cases for file syscalls
+
++ LOAD
+    ```c
+    bool load (const char *file_name, void (**eip) (void), void **esp)
+    ```
+    Aquire file_system_lock before opening the executable and release it after the file is closed
 
 #### Algorithms
 + First, set file_system_lock as a global lock in syscall.c
@@ -420,6 +424,10 @@ Design Document for Project 1: User Programs
     4. Call file_close(pf)
     5. Release the file system lock
     6. Set open_files[fd] to NULL
+
++ In bool load (const char *file_name, void (**eip) (void), void **esp)
+    1. Acquire the file system lock before calling file_read()
+    2. Release the file system lock after the file_close()
 
 #### Synchronization
 + lock file_system_lock
