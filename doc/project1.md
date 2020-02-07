@@ -407,15 +407,40 @@ Design Document for Project 1: User Programs
 
 ### Question 1
 
-name: sc-bad-sp.c
-+ in line 18, using inline assembly code, first store a invalid number into *%esp* and then executing systam call. 
++ In child-bad.c, line 12:
+    ```c
+    asm volatile ("movl $0x20101234, %esp; int $0x30");
+    ```
+    movl sets esp to an invaild value(0x20101234), then int invokes the syscall. Because esp is invaild, syscall should kill the process. 
+    
++ In sc-bad-sp.c, line 18:
+    ```c
+    asm volatile ("movl $.-(64*1024*1024), %esp; int $0x30");
+    ```
+    First store a invalid number into *%esp* and then execute systam call. Also result in being killed. 
 
 ### Question 2
 
-+ name: sc-boundary-3.c
-    + TODO
++ In sc-boundary-3.c, line 13:
+    ```c
+    char *p = get_bad_boundary ();
+    p--;
+    *p = 100;
+
+    /* Invoke the system call. */
+    asm volatile ("movl %0, %%esp; int $0x30" : : "g" (p));
+    ```
+    The first three lines makes p point to the byte just below the boundary and assign the byte with 100. The assembly code assigns esp with p so the stack is only 1 byte in depth and is unable to pop a 32-bit int as the syscall argument, which resulted in killing this process.
 
 ### Question 3
 
-+ name: remove
-    + TODO
++ REMOVE
+    The test suite don't cover tests in bool remove(const char *file) syscall, which is used to delete files. OS might run into trouble if:
+    1. file is pointing to a invalid memory address
+    2. file is not a acceptable string(string reaches memory boundary before '\0' or contains invalid character)
+    3. file does not exist in file system
+    4. file is being opened
+    5. file not allowed to be deleted by user programs(such as system files)
+    The first four cases should be tested. For the fifth test, it may cause damage in system. So better use a dummy system file to test.
+
+
