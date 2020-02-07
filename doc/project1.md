@@ -59,7 +59,7 @@ Modifying following functions:
 ### Task 2: Process Control Syscalls
 
 #### Data structures and functions
-Modifying following function:
+Modifying following functions:
 + SYSCALL_HANDLER
     ```c
     static void syscall_handler (struct intr_frame *f UNUSED);
@@ -67,6 +67,30 @@ Modifying following function:
     1. verify esp
     2. dispatch syscall according to argv[0]
     3. verify argument if syscall has pointer argument
+
++ PROCESS_EXECUTE
+    ```c
+    tid_t thread_create (const char *name, int priority,
+               thread_func *function, void *aux);
+    ```
+    + initialize CHILDS list
+    + init the child's semaphore to 0 not the temporary
+    + add the child thread's CHILD_ELEM into current_thread's CHILDS list
+
+    ```c
+    tid_t process_execute (const char *file_name);
+    ```
+    + if child thread creates successfully, then parent thread SEMA_DOWN(child), other wise return -1
+
+    ```c
+    static void start_process (void *file_name_);
+    ```
+    + after child thread successfully load program file into memory, SEMA_UP(parent_wait) 
+
++ PROCESS_WAIT
+    ```c
+    int process_wait (tid_t child_tid UNUSED);
+    ```
 
 Adding following functions:
 + PRACTICE
@@ -129,41 +153,23 @@ Modifying following data structure:
         unsigned magic;                     /* Detects stack overflow. */
     };
     ```
-3. PROCESS_EXEUTE
-    ```c
-    tid_t thread_create (const char *name, int priority,
-               thread_func *function, void *aux);
-    ```
-    + initialize CHILDS list
-    + init the child's semaphore to 0 not the temporary
-    + add the child thread's CHILD_ELEM into current_thread's CHILDS list
 
-    ```c
-    tid_t process_execute (const char *file_name);
-    ```
-    + if child thread creates successfully, then parent thread SEMA_DOWN(child), other wise return -1
-
-    ```c
-    static void start_process (void *file_name_);
-    ```
-    + after child thread successfully load program file into memory, SEMA_UP(parent_wait) 
-
-4. PROCESS_WAIT
-    ```c
-    int process_wait (tid_t child_tid UNUSED);
-    ```
 
 #### Algorithms
 
-1. syscall_handler
-    Verify the pointer f->esp
-    + if null
-    + if point to user addr 
-        + using IS_USER_ADDR()
-    + if point to mapped page 
-        + using PAGEDIR_GET_PAGE()
-    + if cross boundary
-        + verify address of last byte
+1. in syscall_handler() after args is assigned, add some verification. Then call corresponding syscall according to argv[0]. Verify argv[1] if it is the argument of syscall.
+    1. Verify the pointer f->esp
+        + if null
+        + if point to user addr 
+            + using IS_USER_ADDR()
+        + if point to mapped page 
+            + using PAGEDIR_GET_PAGE()
+        + if cross boundary
+            + verify address of last byte
+    2. Call syscall and verify argument
+        + switch args[0]
+        + if syscall requires an argument, verify args[1] with steps in #1
+        + call syscall
 
 2. practice
     + return arg+1
