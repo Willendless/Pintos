@@ -60,7 +60,7 @@ Modifying following functions:
 
 #### Data structures and functions
 
-*Modifying following data structure*:
+*Modifying following data structure*
 + struct thread
     ```c
     struct thread
@@ -91,7 +91,7 @@ Modifying following functions:
     };
     ```
 
-*Adding following functions:*
+*Adding following functions*
 + PRACTICE
     ```c
     int syscall_practice(int arg);
@@ -122,7 +122,7 @@ Modifying following functions:
     ```
     Wait for process pid to finish and get its return value
 
-*Modifying following function:*
+*Modifying following functions*
 + SYSCALL_HANDLER
     ```c
     static void syscall_handler (struct intr_frame *f UNUSED);
@@ -150,13 +150,13 @@ Modifying following functions:
     ```
     1. if CHILD_TID is not a child thread or invalid(search it in the CHILD list), return -1, otherwise find the child's thread struct
     2. SEMA_DOWN(child->parent_wait)
+
 5. PROCESS_EXIT
     ```c
     void process_exit (void);
     ```
     + if parent_wait->waiters is not empty, SEMA_UP(parent_wait)
     + for every thread struct in the CHILD list, release it if its state is THREAD_DYING
-
 
 
 #### Algorithms
@@ -203,6 +203,60 @@ Modifying following functions:
 ### Task 3: File Operation Syscalls
 
 #### Data structures and functions
+*Adding following functions*
++ CREATE
+    ```c
+    bool create (const char *file_name, unsigned init_size);
+    ```
+    Create a new file named file_name and initialize its size as init_size bytes. Return true if succeeded, otherwise false.
+
++ REMOVE
+    ```c
+    bool remove (const char *file_name);
+    ```
+    Delete the file named file_name. Return true if succeeded, otherwise false.
+
++ OPEN
+    ```c
+     int open (const char *file_name);
+    ```
+    Open the file named file_name and return its file descriptor, return -1 if failed.
+
++ FILESIZE
+    ```c
+     int filesize (int fd);
+    ```
+    Return the size of the file opened as fd.
+
++ READ
+    ```c
+    int read (int fd, void *buffer, unsigned size);
+    ```
+    Read size of bytes from the file opened as fd and store it in the buffer. Return the size actually read, or -1 if could not read.
+
++ WRITE
+    ```c
+    int write (int fd, const void *buffer, unsigned size);
+    ```
+    Write size of bytes from the buffer to the file opened as fd. Return the size actually write, or -1 if could not write.
+
++ SEEK
+    ```c
+    void seek (int fd, unsigned position);
+    ```
+    Change the file pointer to the beginning of the file + position offset.
+
++ TELL
+    ```c
+    unsigned tell (int fd);
+    ```
+    Return the offset of the file pointer to the beginning of the file.
+
++ CLOSE
+    ```c
+    void close (int fd);
+    ```
+    Close the file opened as fd.
 
 #### Algorithms
 
