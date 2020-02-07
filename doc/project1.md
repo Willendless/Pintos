@@ -230,10 +230,10 @@ Design Document for Project 1: User Programs
 ### Task 3: File Operation Syscalls
 
 #### Data structures and functions
-*Adding following data structure*:
-+ file lock
+*Adding following global variable*:
++ lock file_system_lock
     ```c
-    static struct lock file_lock;           /* Filesystem operation global lock */
+    static struct lock file_system_lock;           /* Filesystem operation global lock */
     ```
 
 *Modifying following data structure*:
@@ -381,6 +381,8 @@ Design Document for Project 1: User Programs
         3. Call file_read(pf, buffer, size) and store return value as read_len
         4. Release the file system lock
         5. Return read_len
+    4. else
+        1. Return -1
  
 + int syscall_write(int fd, const void *buffer, unsigned size)
     1. Check if buffer and buffer+size is valid. Return -1 if not.
@@ -393,6 +395,8 @@ Design Document for Project 1: User Programs
         3. Call file_write(pf, buffer, size) and store return value as write_len
         4. Release the file system lock
         5. Return write_len
+    4. else
+        1. Return -1
 
 + void syscall_seek(int fd, unsigned position)
     1. Check if 1 < fd  < MAX_OPEN_FILES and open_files[fd] is not NULL. Return -1 if not.
@@ -419,12 +423,16 @@ Design Document for Project 1: User Programs
 
 #### Synchronization
 + lock file_system_lock
-    Used to allow only one thread at a time to access file syscalls to avoid racing issue
+    Used to allow only one thread at a time to access file syscalls to avoid racing issue.
+    Because it's time-consuming to read/write from disk, locking won't affect much on performance.
 
 #### Rationale
 
-1. Using lock but not semaphore
+1. Use lock instead of semaphore
     + only the owner of lock can release it.
+
+2. Create different functions for different kinds of syscall
+    + to simplify syscall_handle() and make different syscalls easier to debug
 
 ## Additional Questions
 
