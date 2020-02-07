@@ -113,7 +113,7 @@ Modifying following data structure:
         struct list_elem allelem;           /* List element for all threads list. */
 
         /* Shared between thread.c and synch.c. */
-        struct list_elem elem;              /* List element. */
+        struct list_elem elem;              /* List element. */ 
 
     #ifdef USERPROG
         /* Owned by userprog/process.c. */
@@ -122,13 +122,36 @@ Modifying following data structure:
         /* Modification here*/
         struct list childs;
         struct semaphore parent_wait;
+        struct list_elem child_elem;
     #endif
 
         /* Owned by thread.c. */
         unsigned magic;                     /* Detects stack overflow. */
     };
     ```
+3. PROCESS_EXEUTE
+    ```c
+    tid_t thread_create (const char *name, int priority,
+               thread_func *function, void *aux);
+    ```
+    + initialize CHILDS list
+    + init the child's semaphore to 0 not the temporary
+    + add the child thread's CHILD_ELEM into current_thread's CHILDS list
 
+    ```c
+    tid_t process_execute (const char *file_name);
+    ```
+    + if child thread creates successfully, then parent thread SEMA_DOWN(child), other wise return -1
+
+    ```c
+    static void start_process (void *file_name_);
+    ```
+    + after child thread successfully load program file into memory, SEMA_UP(parent_wait) 
+
+4. PROCESS_WAIT
+    ```c
+    int process_wait (tid_t child_tid UNUSED);
+    ```
 
 #### Algorithms
 
@@ -160,6 +183,9 @@ Modifying following data structure:
 #### Synchronization
 
 #### Rationale
+
+1. initialize the PARENT_WAIT to 0
+    + loading child program into memory can happen only once 
 
 ### Task 3: File Operation Syscalls
 
