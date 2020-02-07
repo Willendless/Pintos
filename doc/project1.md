@@ -475,8 +475,7 @@ Design Document for Project 1: User Programs
     1. file is pointing to a invalid memory address
     2. file is not a acceptable string(string reaches memory boundary before '\0' or contains invalid character)
     3. file does not exist in file system
-    4. file is being opened
-    5. file not allowed to be deleted by user programs(such as system files)
-    The first four cases should be tested. For the fifth test, it may cause damage in system. So better use a dummy system file to test.
+    4. file not allowed to be deleted by user programs(such as system files)
+    The first three cases should be tested. For the fourth test, it may cause damage in system. So better use a dummy system file to test.
 
 
