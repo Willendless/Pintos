@@ -18,7 +18,7 @@ Design Document for Project 1: User Programs
     ```c
     tid_t process_execute (const char *file_name);
     ```
-    + Use the correct file name as the argument to THREA_CREATE()
+    + Use the correct file name as the argument to THREAD_CREATE()
 
 2.  START_PROCESS
     ```c
