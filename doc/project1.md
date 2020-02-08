@@ -158,7 +158,7 @@ Our code doesn't modify these two variables, or access them before they are crea
     static void syscall_handler (struct intr_frame *f UNUSED);
     ```
     + Verify %esp and dispatch system call.
-+ PROCESS_EXEUTE
++ THREAD_CREATE
     ```c
     tid_t thread_create (const char *name, int priority,
                thread_func *function, void *aux);
