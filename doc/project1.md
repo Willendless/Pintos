@@ -37,7 +37,7 @@ Design Document for Project 1: User Programs
     4. argv[argc]: push null
     3. argv[.]: push every string address according to the length of every string 
     3. argv: push address of argv[0]
-    4. ra: push 0 as dump return address
+    4. ra: push 0 as dumb return address
 
 #### Synchronization
 
