@@ -29,27 +29,32 @@ static void start_process (void *file_name_);
 
 #### Algorithms
 
+1. in PROCESS_EXECUTE() before calling THREAD_CREATE(), get the correct filename from FILE_NAME and pass it into THREAD_CREATE().
+    + 
+
+2. in START_PROCESS() before calling LOAD(), get the correct filename from FILE_NAME_ and pass it into LOAD(), then after return from LOAD(), if LOAD() successfully return, using STRTOK_R to get every token from FILE_NAME_ and push them into stack
+
 #### Synchronization
 
 #### Rationale
+
+1. 
+
+2.
+
 
 ### Task 2: Process Control Syscalls
 
 #### Data structures and functions
 
-1. SYSCALL_INIT
-```c
-void syscall_init (void);
-```
-
-+ init process control syscall
-
-2. SYSCALL_HANDLER
+1. SYSCALL_HANDLER
 ```c
 static void syscall_handler (struct intr_frame *f UNUSED);
 ```
 
 + verify esp
+
+
 
 #### Algorithms
 
@@ -60,13 +65,6 @@ static void syscall_handler (struct intr_frame *f UNUSED);
 ### Task 3: File Operation Syscalls
 
 #### Data structures and functions
-
-1. SYSCALL_INIT
-```c
-void syscall_init (void);
-```
-
-+ init file operation syscall
 
 #### ALgorithms
 
