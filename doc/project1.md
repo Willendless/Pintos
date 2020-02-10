@@ -73,8 +73,8 @@ Design Document for Project 1: User Programs
     }
     ```
 
+*Modifying following data structure*
 
-*Modifying following data structure*:
 + struct thread
     ```c
     struct thread
@@ -105,7 +105,7 @@ Design Document for Project 1: User Programs
     };
     ```
 
-*Adding following functions:*
+*Adding following functions*
 + PRACTICE
     ```c
     int syscall_practice(int arg) {
@@ -151,7 +151,7 @@ Design Document for Project 1: User Programs
     ```
     + Wait for process pid to finish and get its return value.
 
-*Modifying following function:*
+*Modifying following functions*
 + SYSCALL_HANDLER
     ```c
     static void syscall_handler (struct intr_frame *f UNUSED);
@@ -176,13 +176,15 @@ Design Document for Project 1: User Programs
 + PROCESS_WAIT
     ```c
     int process_wait (tid_t child_tid UNUSED);
-    ```
+    ```   
     + Verify TID and block in struct semaphore PARENT_WAIT.
+
 5. PROCESS_EXIT
     ```c
     void process_exit (void);
     ```
     + Release resources after process exits.
+
 
 #### Algorithms
 
@@ -229,6 +231,60 @@ Design Document for Project 1: User Programs
 ### Task 3: File Operation Syscalls
 
 #### Data structures and functions
+*Adding following functions*
++ CREATE
+    ```c
+    bool create (const char *file_name, unsigned init_size);
+    ```
+    Create a new file named file_name and initialize its size as init_size bytes. Return true if succeeded, otherwise false.
+
++ REMOVE
+    ```c
+    bool remove (const char *file_name);
+    ```
+    Delete the file named file_name. Return true if succeeded, otherwise false.
+
++ OPEN
+    ```c
+     int open (const char *file_name);
+    ```
+    Open the file named file_name and return its file descriptor, return -1 if failed.
+
++ FILESIZE
+    ```c
+     int filesize (int fd);
+    ```
+    Return the size of the file opened as fd.
+
++ READ
+    ```c
+    int read (int fd, void *buffer, unsigned size);
+    ```
+    Read size of bytes from the file opened as fd and store it in the buffer. Return the size actually read, or -1 if could not read.
+
++ WRITE
+    ```c
+    int write (int fd, const void *buffer, unsigned size);
+    ```
+    Write size of bytes from the buffer to the file opened as fd. Return the size actually write, or -1 if could not write.
+
++ SEEK
+    ```c
+    void seek (int fd, unsigned position);
+    ```
+    Change the file pointer to the beginning of the file + position offset.
+
++ TELL
+    ```c
+    unsigned tell (int fd);
+    ```
+    Return the offset of the file pointer to the beginning of the file.
+
++ CLOSE
+    ```c
+    void close (int fd);
+    ```
+    Close the file opened as fd.
 
 *Adding following data structure*:
 + file lock
