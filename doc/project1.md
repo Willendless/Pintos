@@ -4,7 +4,7 @@ Design Document for Project 1: User Programs
 ## Group Members
 
 * Jiarui Li <jiaruili@berkeley.edu>
-* FirstName LastName <email@domain.example>
+* Xiang Zhang <xzhang1048576@berleley.edu>
 * FirstName LastName <email@domain.example>
 * FirstName LastName <email@domain.example>
 
@@ -13,60 +13,94 @@ Design Document for Project 1: User Programs
 ### Task 1: Argument Passing
 
 #### Data structures and functions
-
+Modifying following functions:
 1. PROCESS_EXEUTE
     ```c
     tid_t process_execute (const char *file_name);
     ```
-    + correct the FILE_NAME argument passed to thread_create
+    + It should be the program name instead of FILE_NAME as the name of the new thread in thread_create()
 
 2.  START_PROCESS
     ```c
     static void start_process (void *file_name_);
     ```
-    + using STRTOK_R to get every argument from FILE_NAME using the first one as argument to LOAD() file and after successful LOAD() push all into stack frame 
+    + Use STRTOK_R to get every argument from FILE_NAME using the first one as argument to LOAD() file and after successful LOAD() push all into stack frame 
 
 #### Algorithms
 
 1. in PROCESS_EXECUTE() before calling THREAD_CREATE(), get the correct filename from FILE_NAME and pass it into THREAD_CREATE().
-    + using STRPBRK() and STRLCPY()
+    1. use char* res = STRPBRK(FILE_NAME, " ") to detect the first space in FILE_NAME
+    2. if res == NULL, assign word_len with strlen(FILE_NAME), otherwise assign word_len with res - FILE_NAME  
+    3. use STRLCPY(buf, FILE_NAME, word_len) to copy the program name to allocated char buf[MAX_WORD_LEN]
+    4. append the buf with '\0' and use it as the first argument in THREAD_CREATE()
 
-2. in START_PROCESS() before calling LOAD(), get the correct filename from FILE_NAME_ and pass it into LOAD(), then after return from LOAD(), if LOAD() successfully return, using STRTOK_R to get every token from FILE_NAME_ and push them into stack
+2. in START_PROCESS() before calling LOAD(), get the correct filename from FILE_NAME_ and pass it into LOAD(), then after returning from LOAD(), if LOAD() returned successfully, using STRTOK_R to get every token from FILE_NAME_ and push them into stack. Otherwise free the page and exit this thread.
     1. argv[.][.] push every string in reverse order using strlcopy
     2. align stack so that satisfy 16-byte align requirement
-    4. argv[argc]: push null
-    3. argv[.]: push every string address according to the length of every string 
-    3. argv: push address of argv[0]
-    4. ra: push 0 as dumb return address
+    3. argv[argc]: push null
+    4. argv[.]: push every string address according to the length of every string 
+    5. argv: push address of argv[0]
+    6. ra: push 0 as dumb return address
 
 #### Synchronization
 
 1. temporary
-
 2. fn_copy
 
 #### Rationale
 
-1. using local variable but not global variable to store temporary string token
-    + if using local variable, it can be released automatically after function return
-    + if using dynamic memory, it must be guaranteed to be released before THREAD_EXIT()
+1. Use local variable but not global variable to store temporary string token
+    + Local variable can be released automatically after function return
+    + Dynamic memory must be guaranteed to be released before THREAD_EXIT()
 
-2. using function provided by string.c not write them from scratch
+2. Use function provided by string.c instead of writing them from scratch
 
 
 ### Task 2: Process Control Syscalls
 
 #### Data structures and functions
-
-1. SYSCALL_HANDLER
+Modifying following function:
++ SYSCALL_HANDLER
     ```c
     static void syscall_handler (struct intr_frame *f UNUSED);
     ```
     1. verify esp
-    2. dispatch syscall according to argv[1]
+    2. dispatch syscall according to argv[0]
     3. verify argument if syscall has pointer argument
 
-2. struct thread
+Adding following functions:
++ PRACTICE
+    ```c
+    int practice(int arg);
+    ```
+    Increase arg by 1
+
++ HALT
+    ```c
+    void halt(void);
+    ```
+    Terminate the system
+
++ EXEC
+    ```c
+    pid_t exec(const char* cmd_line);
+    ```
+    Run the program in cmd_line with subsequent arguments, returning its program id
+
++ EXIT
+    ```c
+    void exit(int status);
+    ```
+    Terminate current user program and return to kernel
+
++ WAIT
+    ```c
+    int wait(pid_t pid);
+    ```
+    Wait for process pid to finish and get its return value
+
+Modifying following data structure:
++ struct thread
     ```c
     struct thread
     {
@@ -85,7 +119,7 @@ Design Document for Project 1: User Programs
         /* Owned by userprog/process.c. */
         uint32_t *pagedir;                  /* Page directory. */
 
-        /*modified*/
+        /* Modification here*/
         struct list childs;
         struct semaphore parent_wait;
     #endif
@@ -96,10 +130,10 @@ Design Document for Project 1: User Programs
     ```
 
 
-
 #### Algorithms
 
-1. Accessing user memory(pointer verify)
+1. syscall_handler
+    Verify the pointer f->esp
     + if null
     + if point to user addr 
         + using IS_USER_ADDR()
@@ -108,9 +142,20 @@ Design Document for Project 1: User Programs
     + if cross boundary
         + verify address of last byte
 
-2. exec
-    + verify argument
-    + 
+2. practice
+    + return arg+1
+
+3. halt
+    + call shutdown_power_off()
+
+4. exec
+    + //TODO:implement exec
+
+5. exit
+    + //TODO:implement exit
+
+6. wait
+    + //TODO:implement wait
 
 #### Synchronization
 
