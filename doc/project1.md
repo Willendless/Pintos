@@ -59,47 +59,8 @@ Modifying following functions:
 ### Task 2: Process Control Syscalls
 
 #### Data structures and functions
-Modifying following function:
-+ SYSCALL_HANDLER
-    ```c
-    static void syscall_handler (struct intr_frame *f UNUSED);
-    ```
-    1. verify esp
-    2. dispatch syscall according to argv[0]
-    3. verify argument if syscall has pointer argument
 
-Adding following functions:
-+ PRACTICE
-    ```c
-    int practice(int arg);
-    ```
-    Increase arg by 1
-
-+ HALT
-    ```c
-    void halt(void);
-    ```
-    Terminate the system
-
-+ EXEC
-    ```c
-    pid_t exec(const char* cmd_line);
-    ```
-    Run the program in cmd_line with subsequent arguments, returning its program id
-
-+ EXIT
-    ```c
-    void exit(int status);
-    ```
-    Terminate current user program and return to kernel
-
-+ WAIT
-    ```c
-    int wait(pid_t pid);
-    ```
-    Wait for process pid to finish and get its return value
-
-Modifying following data structure:
+*Modifying following data structure*:
 + struct thread
     ```c
     struct thread
@@ -129,74 +90,115 @@ Modifying following data structure:
         unsigned magic;                     /* Detects stack overflow. */
     };
     ```
-3. exec & PROCESS_EXEUTE
+
+*Adding following functions:*
++ PRACTICE
+    ```c
+    int syscall_practice(int arg);
+    ```
+    Increase arg by 1
+
++ HALT
+    ```c
+    void syscall_halt(void);
+    ```
+    Terminate the system
+
++ EXEC
+    ```c
+    pid_t syscall_exec(const char* cmd_line);
+    ```
+    Run the program in cmd_line with subsequent arguments, returning its program id
+
++ EXIT
+    ```c
+    void syscall_exit(int status);
+    ```
+    Terminate current user program and return to kernel
+
++ WAIT
+    ```c
+    int syscall_wait(pid_t pid);
+    ```
+    Wait for process pid to finish and get its return value
+
+*Modifying following function:*
++ SYSCALL_HANDLER
+    ```c
+    static void syscall_handler (struct intr_frame *f UNUSED);
+    ```
+    dispatch syscall
++ PROCESS_EXEUTE
     ```c
     tid_t thread_create (const char *name, int priority,
                thread_func *function, void *aux);
     ```
-    + initialize CHILDS list
-    + init the child's semaphore to 0 not the temporary
-    + add the child thread's CHILD_ELEM into current_thread's CHILDS list
-
++ PROCESS_EXECUTE
     ```c
     tid_t process_execute (const char *file_name);
     ```
     + if child thread creates successfully, then parent thread SEMA_DOWN(child), other wise return -1
-
++ START_PROCESS
     ```c
     static void start_process (void *file_name_);
     ```
     + after child thread successfully load program file into memory, SEMA_UP(parent_wait) 
 
-4. WAIT & PROCESS_WAIT
+4. PROCESS_WAIT
     ```c
     int process_wait (tid_t child_tid UNUSED);
     ```
     1. if CHILD_TID is not a child thread or invalid(search it in the CHILD list), return -1, otherwise find the child's thread struct
     2. SEMA_DOWN(child->parent_wait)
-
-
-5. EXIT & PROCESS_EXIT
+5. PROCESS_EXIT
     ```c
     void process_exit (void);
     ```
     + if parent_wait->waiters is not empty, SEMA_UP(parent_wait)
     + for every thread struct in the CHILD list, release it if its state is THREAD_DYING
-    + 
+
+
 
 #### Algorithms
 
 1. syscall_handler
-    Verify the pointer f->esp
-    + if null
-    + if point to user addr 
-        + using IS_USER_ADDR()
-    + if point to mapped page 
-        + using PAGEDIR_GET_PAGE()
-    + if cross boundary
-        + verify address of last byte
-
-2. practice
-    + return arg+1
-
-3. halt
-    + call shutdown_power_off()
-
-4. exec
-    + //TODO:implement exec
-
-5. exit
-    + //TODO:implement exit
-
-6. wait
-    + //TODO:implement wait
+    1. verify the pointer f->esp
+        + if null
+        + if point to user addr 
+            + using IS_USER_ADDR()
+        + if point to mapped page 
+            + using PAGEDIR_GET_PAGE()
+        + if cross boundary
+            + verify address of last byte
+    2. dispatch syscall according to syscall number
+    3. verify pointer before execute syscall
+2. exec
+    + call PROCESS_EXECUTE()
+        1. init CHILDS list
+        2. init semaphore PARENT_WAIT
+        3. add CHILD_ELEM into current's CHILDS
+3. exit
+    + call PROCESS_EXIT()
+        1. release TLB of dying child
+        2. change status of current thread
+        3. release waiting parent if exists
+4. wait
+    1. call PROCESS_WAIT()
+        + verify tid by scan the CHILDS list
+        + block in semaphore PARENT_WAIT
+    2. after child changes to THREAD_DYING, release its TLB
 
 #### Synchronization
+
+1. struct semaphore parent_wait;
 
 #### Rationale
 
 1. initialize the PARENT_WAIT to 0
     + loading child program into memory can happen only once 
+    + only parent can call wait and block in the semaphore
+2. in PROCESS_EXIT(), first release dying child then change thread_status and at last release waiting parent if it exists. Also, wait until the state of child thread changes to THREAD_DYING then release its TLB
+    + if releasing waiting parent first, parent may release child's TLB before child release other resources 
 
 ### Task 3: File Operation Syscalls
 
