@@ -13,18 +13,18 @@ Design Document for Project 1: User Programs
 ### Task 1: Argument Passing
 
 #### Data structures and functions
-Modifying following functions:
+*Modifying following functions:*
 1. PROCESS_EXEUTE
     ```c
     tid_t process_execute (const char *file_name);
     ```
-    + It should be the program name instead of FILE_NAME as the name of the new thread in thread_create()
+    + Use the correct file name as the argument to THREA_CREATE()
 
 2.  START_PROCESS
     ```c
     static void start_process (void *file_name_);
     ```
-    + Use STRTOK_R to get every argument from FILE_NAME using the first one as argument to LOAD() file and after successful LOAD() push all into stack frame 
+    + Pass the correct file name to LOAD() and after successful LOAD() set user stack frame 
 
 #### Algorithms
 
@@ -35,8 +35,8 @@ Modifying following functions:
     4. append the buf with '\0' and use it as the first argument in THREAD_CREATE()
 
 2. in START_PROCESS() before calling LOAD(), get the correct filename from FILE_NAME_ and pass it into LOAD(), then after returning from LOAD(), if LOAD() returned successfully, using STRTOK_R to get every token from FILE_NAME_ and push them into stack. Otherwise free the page and exit this thread.
-    1. argv[.][.] push every string in reverse order using strlcopy
-    2. align stack so that satisfy 16-byte align requirement
+    1. argv[.][.]: push every string in reverse order using strlcopy
+    2. padding: align stack so that satisfy 16-byte align requirement
     3. argv[argc]: push null
     4. argv[.]: push every string address according to the length of every string 
     5. argv: push address of argv[0]
@@ -44,8 +44,7 @@ Modifying following functions:
 
 #### Synchronization
 
-1. temporary
-2. fn_copy
+1. fn_copy
 
 #### Rationale
 
@@ -59,6 +58,21 @@ Modifying following functions:
 ### Task 2: Process Control Syscalls
 
 #### Data structures and functions
+
+*Adding following data structure*:
++ struct wait_status
+    ```c
+    struct wait_status
+    {
+        struct list_elem elem;              /* 'children' list elem */
+        struct lock lock;                   /* Protects ref_cnt */
+        int ref_cnt;                        /* 2=child and parent both alive, 1=either child or parent alive, 0=child and parent both dead */
+        tid_t tid;                          /* Child thread id */
+        int exit _code;                     /* Child exit code, if dead. */
+        struct semaphore dead;              /* 1=child alive, 0=child dead. */
+    }
+    ```
+
 
 *Modifying following data structure*:
 + struct thread
@@ -81,9 +95,9 @@ Modifying following functions:
         uint32_t *pagedir;                  /* Page directory. */
 
         /* Modification here*/
-        struct list childs;
-        struct semaphore parent_wait;
-        struct list_elem child_elem;
+        struct list children;               /* Completion status of children. */
+        struct wait_status *wait_status;    /* This process's completion status. */
+        struct list_elem child_elem;        /* List element for parent childs list. */
     #endif
 
         /* Owned by thread.c. */
@@ -94,70 +108,81 @@ Modifying following functions:
 *Adding following functions:*
 + PRACTICE
     ```c
-    int syscall_practice(int arg);
+    int syscall_practice(int arg) {
+        return arg + 1;
+    }
     ```
-    Increase arg by 1
+    + Return arg plus one.
 
 + HALT
     ```c
-    void syscall_halt(void);
+    void syscall_halt(void) {
+        shut_down_power_off ();
+    }
     ```
-    Terminate the system
+    + Terminate the system.
 
 + EXEC
     ```c
-    pid_t syscall_exec(const char* cmd_line);
+    pid_t syscall_exec(const char* cmd_line) {
+        pit_t pid = -1;
+        if (pointer_valid (cmd_line))
+            pid = process_exec (cmd_line);
+        return pid;
+    }
     ```
-    Run the program in cmd_line with subsequent arguments, returning its program id
+    + Run the program in cmd_line with subsequent arguments, returning its program id.
 
 + EXIT
     ```c
-    void syscall_exit(int status);
+    void syscall_exit(int status) {
+        thread_current ()->exit_status = status;
+        printf ("%s: exit(%d)\n", &thread_current ()->name, args[1]);
+        thread_exit ();
+    }
     ```
-    Terminate current user program and return to kernel
+    + Terminate current user program and return to kernel.
 
 + WAIT
     ```c
-    int syscall_wait(pid_t pid);
+    int syscall_wait(pid_t pid) {
+        return process_wait ();
+    }
     ```
-    Wait for process pid to finish and get its return value
+    + Wait for process pid to finish and get its return value.
 
 *Modifying following function:*
 + SYSCALL_HANDLER
     ```c
     static void syscall_handler (struct intr_frame *f UNUSED);
     ```
-    dispatch syscall
+    + Dispatch system call.
 + PROCESS_EXEUTE
     ```c
     tid_t thread_create (const char *name, int priority,
                thread_func *function, void *aux);
     ```
+    + Initialize struct THREAD for child process.
 + PROCESS_EXECUTE
     ```c
     tid_t process_execute (const char *file_name);
     ```
-    + if child thread creates successfully, then parent thread SEMA_DOWN(child), other wise return -1
+    + Synchronize parent and child process, parent process waits for child's LOAD().
 + START_PROCESS
     ```c
     static void start_process (void *file_name_);
     ```
-    + after child thread successfully load program file into memory, SEMA_UP(parent_wait) 
-
-4. PROCESS_WAIT
+    + Synchronize parent and child process
++ PROCESS_WAIT
     ```c
     int process_wait (tid_t child_tid UNUSED);
     ```
-    1. if CHILD_TID is not a child thread or invalid(search it in the CHILD list), return -1, otherwise find the child's thread struct
-    2. SEMA_DOWN(child->parent_wait)
+    + Verify TID and block in struct semaphore PARENT_WAIT.
 5. PROCESS_EXIT
     ```c
     void process_exit (void);
     ```
-    + if parent_wait->waiters is not empty, SEMA_UP(parent_wait)
-    + for every thread struct in the CHILD list, release it if its state is THREAD_DYING
-
-
+    + Release resources after process exits.
 
 #### Algorithms
 
@@ -170,7 +195,7 @@ Modifying following functions:
             + using PAGEDIR_GET_PAGE()
         + if cross boundary
             + verify address of last byte
-    2. dispatch syscall according to syscall number
+    2. dispatch syscall according to syscall number in lib/syscall-nr.h
     3. verify pointer before execute syscall
 2. exec
     + call PROCESS_EXECUTE()
@@ -179,14 +204,15 @@ Modifying following functions:
         3. add CHILD_ELEM into current's CHILDS
 3. exit
     + call PROCESS_EXIT()
-        1. release TLB of dying child
+        1. for every thread struct in the CHILD list, release it if its state is THREAD_DYING
         2. change status of current thread
-        3. release waiting parent if exists
+        3. if parent_wait->waiters is not empty, SEMA_UP(parent_wait)
 4. wait
     1. call PROCESS_WAIT()
-        + verify tid by scan the CHILDS list
-        + block in semaphore PARENT_WAIT
-    2. after child changes to THREAD_DYING, release its TLB
+        1. if CHILD_TID is not a child thread or invalid(search it in the CHILD list), return -1, otherwise find the child's thread struct
+        2. SEMA_DOWN(parent_wait)
+    2. after child changes to THREAD_DYING, release its struct THREAD from CHILD lists
+ 
 
 #### Synchronization
 
@@ -198,11 +224,120 @@ Modifying following functions:
     + loading child program into memory can happen only once 
     + only parent can call wait and block in the semaphore
 2. in PROCESS_EXIT(), first release dying child then change thread_status and at last release waiting parent if it exists. Also, wait until the state of child thread changes to THREAD_DYING then release its TLB
-    + if releasing waiting parent first, parent may release child's TLB before child release other resources 
+    + if releasing waiting parent first, parent may release child's TLB before child release other resources
 
 ### Task 3: File Operation Syscalls
 
 #### Data structures and functions
+
+*Adding following data structure*:
++ file lock
+    ```c
+    static struct lock file_lock;           /* Filesystem operation global lock */
+    ```
+
+
+*Modifying following data structure*:
++ struct thread
+    ```c
+    ```c
+    struct thread
+    {
+        /* Owned by thread.c. */
+        tid_t tid;                          /* Thread identifier. */
+        enum thread_status status;          /* Thread state. */
+        char name[16];                      /* Name (for debugging purposes). */
+        uint8_t *stack;                     /* Saved stack pointer. */
+        int priority;                       /* Priority. */
+        struct list_elem allelem;           /* List element for all threads list. */
+
+        /* Shared between thread.c and synch.c. */
+        struct list_elem elem;              /* List element. */ 
+
+    #ifdef USERPROG
+        /* Owned by userprog/process.c. */
+        uint32_t *pagedir;                  /* Page directory. */
+
+        /* Modification here*/
+        struct list children;               /* Completion status of children. */
+        struct wait_status *wait_status;    /* This process's completion status. */
+        struct list_elem child_elem;        /* List element for parent childs list. */
+    #endif
+
+        /* Owned by thread.c. */
+        unsigned magic;                     /* Detects stack overflow. */
+    };
+    ```
+    ```
+
+*Adding following functions:*
++ SYSCALL_CREATE
+    ```c
+    bool syscall_create(const char *file, unsigned initial_size) {
+
+    }
+    ```
+
++ SYSCALL_REMOVE
+    ```c
+    bool syscall_remove(const char *file) {
+
+    }
+    ```
+
++ SYSCALL_OPEN
+    ```c
+    int syscall_open(const char *file) {
+
+    }
+    ```
+
++ SYSCALL_FILESIZE
+    ```c
+    int filesize(int fd) {
+
+    }
+    ```
+
++ SYSCALL_READ
+    ```c
+    int syscall_read(int fd, const void *buffer, unsigned size) {
+
+    }
+    ```
+
++ SYSCALL_WRITE
+    ```c
+    int syscall_write(int fd, const void *buffer, unsigned size) {
+
+    }
+    ```
+
++ SYSCALL_SEEK
+    ```c
+    void seek(int fd, unsigned position) {
+
+    }
+    ```
+
++ SYSCALL_TELL
+    ```c
+    unsigned tell(int fd) {
+
+    }
+    ```
+
++ SYSCALL_CLOSE
+    ```c
+    void close(int fd) {
+
+    }
+    ```
+
+*Modifying following functions:*
+
+
+
 
 #### Algorithms
 
@@ -210,12 +345,15 @@ Modifying following functions:
 
 #### Rationale
 
+1. Using lock but not semaphore
+    + only the owner of lock can release it.
+
 ## Additional Questions
 
 ### Question 1
 
-+ name: sc-bad-sp.c
-    + in line 18, using x86 assembly code, first store the number  and then executing systam call. 
+name: sc-bad-sp.c
++ in line 18, using inline assembly code, first store a invalid number into *%esp* and then executing systam call. 
 
 ### Question 2
 
