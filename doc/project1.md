@@ -68,7 +68,7 @@ Design Document for Project 1: User Programs
         struct lock lock;                   /* Protects ref_cnt */
         int ref_cnt;                        /* 2=child and parent both alive, 1=either child or parent alive, 0=child and parent both dead */
         tid_t tid;                          /* Child thread id */
-        int exit _code;                     /* Child exit code, if dead. */
+        int exit_code;                     /* Child exit code, if dead. */
         struct semaphore dead;              /* 1=child alive, 0=child dead. */
     }
     ```
@@ -136,7 +136,7 @@ Design Document for Project 1: User Programs
 + EXIT
     ```c
     void syscall_exit(int status) {
-        thread_current ()->exit_status = status;
+        thread_current ()->wait_status->exit_code = status;
         printf ("%s: exit(%d)\n", &thread_current ()->name, args[1]);
         thread_exit ();
     }
@@ -239,7 +239,6 @@ Design Document for Project 1: User Programs
 
 *Modifying following data structure*:
 + struct thread
-    ```c
     ```c
     struct thread
     {
