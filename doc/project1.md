@@ -5,8 +5,8 @@ Design Document for Project 1: User Programs
 
 * Jiarui Li <jiaruili@berkeley.edu>
 * Xiang Zhang <xzhang1048576@berleley.edu>
-* FirstName LastName <email@domain.example>
-* FirstName LastName <email@domain.example>
+* Joel Kattapuram <joelkattapuram@berkeley.edu>
+* Kallan Bao <kallanbao@berkeley.edu>
 
 ## Design Overview
 
