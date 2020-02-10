@@ -129,7 +129,7 @@ Modifying following data structure:
         unsigned magic;                     /* Detects stack overflow. */
     };
     ```
-3. PROCESS_EXEUTE
+3. exec & PROCESS_EXEUTE
     ```c
     tid_t thread_create (const char *name, int priority,
                thread_func *function, void *aux);
@@ -148,10 +148,21 @@ Modifying following data structure:
     ```
     + after child thread successfully load program file into memory, SEMA_UP(parent_wait) 
 
-4. PROCESS_WAIT
+4. WAIT & PROCESS_WAIT
     ```c
     int process_wait (tid_t child_tid UNUSED);
     ```
+    1. if CHILD_TID is not a child thread or invalid(search it in the CHILD list), return -1, otherwise find the child's thread struct
+    2. SEMA_DOWN(child->parent_wait)
+
+
+5. EXIT & PROCESS_EXIT
+    ```c
+    void process_exit (void);
+    ```
+    + if parent_wait->waiters is not empty, SEMA_UP(parent_wait)
+    + for every thread struct in the CHILD list, release it if its state is THREAD_DYING
+    + 
 
 #### Algorithms
 
