@@ -63,7 +63,7 @@ Design Document for Project 1: User Programs
     static void syscall_handler (struct intr_frame *f UNUSED);
     ```
     1. verify esp
-    2. dispatch syscall according to argv[1]
+    2. dispatch syscall according to argv[0]
     3. verify argument if syscall has pointer argument
 
 2. struct thread
@@ -79,22 +79,45 @@ Design Document for Project 1: User Programs
         struct list_elem allelem;           /* List element for all threads list. */
 
         /* Shared between thread.c and synch.c. */
-        struct list_elem elem;              /* List element. */
+        struct list_elem elem;              /* List element. */ 
 
     #ifdef USERPROG
         /* Owned by userprog/process.c. */
         uint32_t *pagedir;                  /* Page directory. */
 
         /*modified*/
-        struct list childs;
+        struct list childs;        
         struct semaphore parent_wait;
+        struct list_elem child_elem;
     #endif
 
         /* Owned by thread.c. */
         unsigned magic;                     /* Detects stack overflow. */
     };
     ```
+3. PROCESS_EXEUTE
+    ```c
+    tid_t thread_create (const char *name, int priority,
+               thread_func *function, void *aux);
+    ```
+    + initialize CHILDS list
+    + init the child's semaphore to 0 not the temporary
+    + add the child thread's CHILD_ELEM into current_thread's CHILDS list
 
+    ```c
+    tid_t process_execute (const char *file_name);
+    ```
+    + if child thread creates successfully, then parent thread SEMA_DOWN(child), other wise return -1
+
+    ```c
+    static void start_process (void *file_name_);
+    ```
+    + after child thread successfully load program file into memory, SEMA_UP(parent_wait) 
+
+4. PROCESS_WAIT
+    ```c
+    int process_wait (tid_t child_tid UNUSED);
+    ```
 
 
 #### Algorithms
@@ -115,6 +138,9 @@ Design Document for Project 1: User Programs
 #### Synchronization
 
 #### Rationale
+
+1. initialize the PARENT_WAIT to 0
+    + loading child program into memory can happen only once 
 
 ### Task 3: File Operation Syscalls
 
