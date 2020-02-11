@@ -4,9 +4,9 @@ Design Document for Project 1: User Programs
 ## Group Members
 
 * Jiarui Li <jiaruili@berkeley.edu>
-* Xiang Zhang <xzhang1048576@berleley.edu>
-* FirstName LastName <email@domain.example>
-* FirstName LastName <email@domain.example>
+* Xiang Zhang <xzhang1048576@berkeley.edu>
+* Joel Kattapuram <joelkattapuram@berkeley.edu>
+* Kallan Bao <kallanbao@berkeley.edu>
 
 ## Design Overview
 
@@ -59,7 +59,7 @@ Design Document for Project 1: User Programs
 
 #### Data structures and functions
 
-*Adding following data structure*:
+*Adding following data structure:*
 + struct wait_status
     ```c
     struct wait_status
@@ -73,9 +73,7 @@ Design Document for Project 1: User Programs
     }
     ```
 
-
-*Modifying following data structure*
-
+*Modifying following data structure:*
 + struct thread
     ```c
     struct thread
@@ -106,7 +104,7 @@ Design Document for Project 1: User Programs
     };
     ```
 
-*Adding following functions*
+*Adding following functions:*
 + PRACTICE
     ```c
     int syscall_practice(int arg) {
@@ -186,7 +184,6 @@ Design Document for Project 1: User Programs
     ```
     + Release resources after process exits.
 
-
 #### Algorithms
 
 1. syscall_handler
@@ -236,7 +233,7 @@ Design Document for Project 1: User Programs
 *Adding following data structure*:
 + file lock
     ```c
-    static struct lock file_lock;           /* Filesystem operation global lock */
+    static struct lock filesystem_lock;           /* Filesystem operation global lock */
     ```
 
 
@@ -264,7 +261,7 @@ Design Document for Project 1: User Programs
         struct list children;               /* Completion status of children. */
         struct wait_status *wait_status;    /* This process's completion status. */
         struct list_elem child_elem;        /* List element for parent childs list. */
-        struct file *open_files[128];            /* Open file list. */
+        struct file *open_files[MAX_OPEN_FILES];            /* Open file list. */
     #endif
 
         /* Owned by thread.c. */
@@ -276,106 +273,210 @@ Design Document for Project 1: User Programs
 
 + SYSCALL_CREATE
     ```c
-    bool syscall_create(const char *file, unsigned initial_size) {
-
-    }
+    bool syscall_create(const char *file, unsigned initial_size);
     ```
-    + Create a new file named file_name and initialize its size as init_size bytes. Return true if succeeded, otherwise false.
+    + Create a new file named *file_name* and initialize its size as initial_size bytes. Return true if succeeded, otherwise false.
 
 + SYSCALL_REMOVE
     ```c
-    bool syscall_remove(const char *file) {
-
-    }
+    bool syscall_remove(const char *file);
     ```
     + Delete the file named file_name. Return true if succeeded, otherwise false.
 
 
 + SYSCALL_OPEN
     ```c
-    int syscall_open(const char *file) {
-
-    }
+    int syscall_open(const char *file);
     ```
     + Open the file named file_name and return its file descriptor, return -1 if failed.
 
 
 + SYSCALL_FILESIZE
     ```c
-    int filesize(int fd) {
-
-    }
+    int filesize(int fd);
     ```
     + Return the size of the file opened as fd.
 
 
 + SYSCALL_READ
     ```c
-    int syscall_read(int fd, const void *buffer, unsigned size) {
-
-    }
+    int syscall_read(int fd, void *buffer, unsigned size);
     ```
-    + Read size of bytes from the file opened as fd and store it in the buffer. Return the size actually read, or -1 if could not read.
+    + Read size bytes from the file opened as fd and store it in the buffer. Return the size actually read, or -1 if could not read.
 
 
 + SYSCALL_WRITE
     ```c
-    int syscall_write(int fd, const void *buffer, unsigned size) {
-
-    }
+    int syscall_write(int fd, const void *buffer, unsigned size);
     ```
-    + Write size of bytes from the buffer to the file opened as fd. Return the size actually write, or -1 if could not write.
+    + Write size bytes from the buffer to the file opened as fd. Return the size actually write, or -1 if could not write.
 
 
 + SYSCALL_SEEK
     ```c
-    void seek(int fd, unsigned position) {
-
-    }
+    void syscall_seek(int fd, unsigned position);
     ```
-    + Change the file pointer to the beginning of the file + position offset.
+    + Change the position of file pointer to the beginning of the file plus position offset.
 
 
 + SYSCALL_TELL
     ```c
-    unsigned tell(int fd) {
-
-    }
+    unsigned syscall_tell(int fd);
     ```
     + Return the offset of the file pointer to the beginning of the file.
 
 
 + SYSCALL_CLOSE
     ```c
-    void close(int fd) {
-
-    }
+    void syscall_close(int fd);
     ```
     + Close the file opened as fd.
 
 
 #### Algorithms
++ First, set file_system_lock as a global lock in syscall.c
+
++ Following modifications in syscall_handler() in Task 2, we shall add more switch options 
+    1. Verify esp. If valid then cast it as (uint_32 *) args, else kill process. (Same as Task2)
+    2. Switch args[0] to find corresponding syscall. (Same as Task2)
+    3. Add SYS_CREATE, SYS_REMOVE ...etc to switch cases.
+    4. Before calling each file system calls, if it has more arguments, verify args[1], args[2] ...etc to see if it has exceeded the memory limit. If it has, terminate the process.
+    5. Call corresponding syscalls. Add args if syscall needs arguments.
+
++ bool syscall_create(const char *file, unsigned initial_size)
+    1. Acquire the file system lock
+    2. Call filesys_create(file, initial_size)
+    3. Release the file system lock
+    4. If filesys_create failed, return false. Otherwise return true
+
++ bool syscall_remove(const char *file)
+    1. Acquire the file system lock
+    2. Call filesys_remove(file)
+    3. Release the file system lock
+    4. If filesys_remove failed, return false. Otherwise return true
+
++ int syscall_open(const char *file)
+    1. Acquire the file system lock
+    2. Call filesys_open(file) and store return value as pf
+    3. Release the file system lock
+    4. If pf == NULL, return -1.
+    5. Append the pf in struct thread::open_files(begin searching from 2, find the first NULL in open_files and replace it with pf)
+    6. Return the position of pf in open_files
+
++ int filesize(int fd)
+    1. Check if 1 < fd  < MAX_OPEN_FILES and open_files[fd] is not NULL. Return -1 if not.
+    2. Get file* pf = open_files[fd]
+    3. Acquire the file system lock
+    4. Call file_length(pf) and store return value as file_len
+    5. Release the file system lock
+    6. Return file_len
+
++ int syscall_read(int fd, void *buffer, unsigned size)
+    1. Check if buffer and buffer+size is valid. Return -1 if not.
+    2. if fd == 0
+        1. while(i-->size) use input_getc() to get a char from keyboard input and put it to *(buffer+i). If input_getc() failed to get char, break.
+        2. return i.
+    3. else if 1 < fd < MAX_OPEN_FILES && open_files[fd] is not NULL
+        1. Get file* pf = list[fd]
+        2. Acquire the file system lock
+        3. Call file_read(pf, buffer, size) and store return value as read_len
+        4. Release the file system lock
+        5. Return read_len
+    4. else
+        1. Return -1
+ 
++ int syscall_write(int fd, const void *buffer, unsigned size)
+    1. Check if buffer and buffer+size is valid. Return -1 if not.
+    2. if fd == 1
+        1. Use putbuf() to write all data in buffer
+        2. Return the value actually written
+    3. else if 1 < fd < MAX_OPEN_FILES && open_files[fd] is not NULL
+        1. Get file* pf = list[fd]
+        2. Acquire the file system lock
+        3. Call file_write(pf, buffer, size) and store return value as write_len
+        4. Release the file system lock
+        5. Return write_len
+    4. else
+        1. Return -1
+
++ void syscall_seek(int fd, unsigned position)
+    1. Check if 1 < fd  < MAX_OPEN_FILES and open_files[fd] is not NULL. Return -1 if not.
+    2. Get file* pf = open_files[fd]
+    3. Acquire the file system lock
+    4. Call file_seek(pf, position)
+    5. Release the file system lock
+
++ unsigned syscall_tell(int fd)
+    1. Check if 1 < fd  < MAX_OPEN_FILES and open_files[fd] is not NULL. Return -1 if not.
+    2. Get file* pf = open_files[fd]
+    3. Acquire the file system lock
+    4. Call file_tell(pf) and store return value as file_pos
+    5. Release the file system lock
+    6. Return file_pos
+
++ void syscall_close(int fd)
+    1. Check if 1 < fd  < MAX_OPEN_FILES and open_files[fd] is not NULL. Return -1 if not.
+    2. Get file* pf = open_files[fd]
+    3. Acquire the file system lock
+    4. Call file_close(pf)
+    5. Release the file system lock
+    6. Set open_files[fd] to NULL
+
++ In bool load (const char *file_name, void (**eip) (void), void **esp)
+    1. Acquire the file system lock before calling file_read()
+    2. Release the file system lock after the file_close()
 
 #### Synchronization
++ lock file_system_lock
+    Used to allow only one thread at a time to access file syscalls to avoid racing issue.
+    Because it's time-consuming to read/write from disk, locking won't affect much on performance.
 
 #### Rationale
 
-1. Using lock but not semaphore
+1. Use lock instead of semaphore
     + only the owner of lock can release it.
+
+2. Create different functions for different kinds of syscall
+    + to simplify syscall_handle() and make different syscalls easier to debug
 
 ## Additional Questions
 
 ### Question 1
 
-name: sc-bad-sp.c
-+ in line 18, using inline assembly code, first store a invalid number into *%esp* and then executing systam call. 
++ In child-bad.c, line 12:
+    ```c
+    asm volatile ("movl $0x20101234, %esp; int $0x30");
+    ```
+    movl sets esp to an invaild value(0x20101234), then int invokes the syscall. Because esp is invaild, syscall should kill the process. 
+    
++ In sc-bad-sp.c, line 18:
+    ```c
+    asm volatile ("movl $.-(64*1024*1024), %esp; int $0x30");
+    ```
+    First store a invalid number into *%esp* and then execute systam call. Also result in being killed. 
 
 ### Question 2
 
-+ name: sc-boundary-3.c
-    + TODO
++ In sc-boundary-3.c, line 13:
+    ```c
+    char *p = get_bad_boundary ();
+    p--;
+    *p = 100;
+
+    /* Invoke the system call. */
+    asm volatile ("movl %0, %%esp; int $0x30" : : "g" (p));
+    ```
+    The first three lines makes p point to the byte just below the boundary and assign the byte with 100. The assembly code assigns esp with p so the stack is only 1 byte in depth and is unable to pop a 32-bit int as the syscall argument, which resulted in killing this process.
 
 ### Question 3
 
-+ name: remove
-    + TODO
++ REMOVE
+    The test suite don't cover tests in bool remove(const char *file) syscall, which is used to delete files. OS might run into trouble if:
+    1. file is pointing to a invalid memory address
+    2. file is not a acceptable string(string reaches memory boundary before '\0' or contains invalid character)
+    3. file does not exist in file system
+    4. file is being opened
+    5. file not allowed to be deleted by user programs(such as system files)
+    The first four cases should be tested. For the fifth test, it may cause damage in system. So better use a dummy system file to test.
+
+
