@@ -18,7 +18,7 @@ Design Document for Project 1: User Programs
     ```c
     tid_t process_execute (const char *file_name);
     ```
-    + Use the correct file name as the argument to THREA_CREATE()
+    + Use the correct file name as the argument to THREAD_CREATE()
 
 2.  START_PROCESS
     ```c
@@ -48,8 +48,8 @@ Design Document for Project 1: User Programs
             
 
 #### Synchronization
-
-1. fn_copy
+Shared resource: fn_copy and file_name
+Our code doesn't modify these two variables, or access them before they are created or after they are destroyed. There is no synchronization issue here. 
 
 #### Rationale
 
@@ -164,11 +164,13 @@ Design Document for Project 1: User Programs
                thread_func *function, void *aux);
     ```
     + Initialize struct THREAD for child process.
+
 + PROCESS_EXECUTE
     ```c
     tid_t process_execute (const char *file_name);
     ```
     + Synchronize parent and child process, parent process waits for child's LOAD().
+
 + START_PROCESS
     ```c
     static void start_process (void *file_name_);
@@ -180,7 +182,7 @@ Design Document for Project 1: User Programs
     ```
     + Verify TID and block in struct semaphore PARENT_WAIT.
 
-5. PROCESS_EXIT
++ PROCESS_EXIT
     ```c
     void process_exit (void);
     ```
@@ -250,7 +252,6 @@ Design Document for Project 1: User Programs
     ```c
     static struct lock filesystem_lock;           /* Filesystem operation global lock */
     ```
-
 
 *Modifying following data structure*:
 + struct thread
@@ -490,8 +491,6 @@ Design Document for Project 1: User Programs
     1. file is pointing to a invalid memory address
     2. file is not a acceptable string(string reaches memory boundary before '\0' or contains invalid character)
     3. file does not exist in file system
-    4. file is being opened
-    5. file not allowed to be deleted by user programs(such as system files)
-    The first four cases should be tested. For the fifth test, it may cause damage in system. So better use a dummy system file to test.
-
+    4. file not allowed to be deleted by user programs(such as system files)
+    The first three cases should be tested. For the fourth test, it may cause damage in system. So better use a dummy system file to test.
 
