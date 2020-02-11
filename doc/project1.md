@@ -34,13 +34,18 @@ Design Document for Project 1: User Programs
     3. use STRLCPY(buf, FILE_NAME, word_len) to copy the program name to allocated char buf[MAX_WORD_LEN]
     4. append the buf with '\0' and use it as the first argument in THREAD_CREATE()
 
-2. in START_PROCESS() before calling LOAD(), get the correct filename from FILE_NAME_ and pass it into LOAD(), then after returning from LOAD(), if LOAD() returned successfully, using STRTOK_R to get every token from FILE_NAME_ and push them into stack. Otherwise free the page and exit this thread.
-    1. argv[.][.]: push every string in reverse order using strlcopy
-    2. padding: align stack so that satisfy 16-byte align requirement
-    3. argv[argc]: push null
-    4. argv[.]: push every string address according to the length of every string 
-    5. argv: push address of argv[0]
-    6. ra: push 0 as dumb return address
+2. in START_PROCESS(), before calling LOAD(), get the correct filename from FILE_NAME_ and pass it into LOAD(), then after returning from LOAD(), 
+    1. if LOAD() returned successfully：
+        + using malloc to create dynamic memory to store the length of every argument
+        + using STRTOK_R to separate argument and get their length
+            1. argv[.][.]: push every string in reverse order using strlcopy
+            2. padding: align stack so that satisfy 16-byte align requirement
+            3. argv[argc]: push null
+            4. argv[.]: push every string address according to the length of every string 
+            5. argv: push address of argv[0]
+            6. ra: push 0 as dumb return address
+    2. Otherwise, free the page and exit this thread.
+            
 
 #### Synchronization
 
@@ -48,11 +53,7 @@ Design Document for Project 1: User Programs
 
 #### Rationale
 
-1. Use local variable but not global variable to store temporary string token
-    + Local variable can be released automatically after function return
-    + Dynamic memory must be guaranteed to be released before THREAD_EXIT()
-
-2. Use function provided by string.c instead of writing them from scratch
+1. Use function provided by string.c instead of writing them from scratch
 
 
 ### Task 2: Process Control Syscalls
@@ -72,6 +73,7 @@ Design Document for Project 1: User Programs
         struct semaphore dead;              /* 1=child alive, 0=child dead. */
     }
     ```
+    + Using struct WAIT_STATUS as shared data for communicating between parent and child process 
 
 *Modifying following data structure:*
 + struct thread
@@ -96,13 +98,13 @@ Design Document for Project 1: User Programs
         /* Modification here*/
         struct list children;               /* Completion status of children. */
         struct wait_status *wait_status;    /* This process's completion status. */
-        struct list_elem child_elem;        /* List element for parent childs list. */
     #endif
 
         /* Owned by thread.c. */
         unsigned magic;                     /* Detects stack overflow. */
     };
     ```
+    + Using struct list CHILDREN to store child process's wait_status
 
 *Adding following functions:*
 + PRACTICE
@@ -155,7 +157,7 @@ Design Document for Project 1: User Programs
     ```c
     static void syscall_handler (struct intr_frame *f UNUSED);
     ```
-    + Dispatch system call.
+    + Verify %esp and dispatch system call.
 + PROCESS_EXEUTE
     ```c
     tid_t thread_create (const char *name, int priority,
@@ -171,11 +173,11 @@ Design Document for Project 1: User Programs
     ```c
     static void start_process (void *file_name_);
     ```
-    + Synchronize parent and child process
+    + Synchronize parent and child process, after successful load SEMA_UP(), otherwise set exit_code as -1 and execute THREAD_EXIT();
 + PROCESS_WAIT
     ```c
     int process_wait (tid_t child_tid UNUSED);
-    ```   
+    ```
     + Verify TID and block in struct semaphore PARENT_WAIT.
 
 5. PROCESS_EXIT
@@ -195,24 +197,40 @@ Design Document for Project 1: User Programs
             + using PAGEDIR_GET_PAGE()
         + if cross boundary
             + verify address of last byte
-    2. dispatch syscall according to syscall number in lib/syscall-nr.h
-    3. verify pointer before execute syscall
-2. exec
+    2. read syscall number and dispatch it according to syscall number in lib/syscall-nr.h
+    3. goto corresponding syscall routine
+        1. validate pointer argument if exists
+        2. execute corresponding statements
+        3. set return value in %eax
+        4. return
+
+2. syscall_exec
+    + verify pointer CMD_LINE
     + call PROCESS_EXECUTE()
-        1. init CHILDS list
-        2. init semaphore PARENT_WAIT
-        3. add CHILD_ELEM into current's CHILDS
-3. exit
+        1. init list CHILDREN, WAIT_STATUS and add WAIT_STATUS into current process's list CHILDREN
+        2. THREAD_CREATE() 
+        3. wait for child process's execution of LOAD()
+            + if fail, return -1
+            + otherwise, return pid
+
+3. syscall_exit
+    + print thread name and exit_code
+    + set current process's EXIT_CODE
     + call PROCESS_EXIT()
-        1. for every thread struct in the CHILD list, release it if its state is THREAD_DYING
-        2. change status of current thread
-        3. if parent_wait->waiters is not empty, SEMA_UP(parent_wait)
-4. wait
+        1. acquire lock and decrease REF_CNT by one
+            + then if REF_CNT == 0, free EXIT_STATUS 
+        2. for all children, acquire their WAIT_STATUS and minus REF_CNT by 1
+            + then if REF_CNT == 0, free EXIT_STATUS
+        
+
+4. syscall_wait
     1. call PROCESS_WAIT()
-        1. if CHILD_TID is not a child thread or invalid(search it in the CHILD list), return -1, otherwise find the child's thread struct
-        2. SEMA_DOWN(parent_wait)
-    2. after child changes to THREAD_DYING, release its struct THREAD from CHILD lists
- 
+        1. verify tid
+        2. SEMA_DOWN()
+        3. obtain the exit code
+        4. destory resurce: acquire lock and decrease REF_CNT by one
+            + if REF_CNT == 0, free EXIT_STATUS 
+        3. return exit code 
 
 #### Synchronization
 
@@ -220,10 +238,7 @@ Design Document for Project 1: User Programs
 
 #### Rationale
 
-1. initialize the PARENT_WAIT to 0
-    + loading child program into memory can happen only once 
-    + only parent can call wait and block in the semaphore
-2. in PROCESS_EXIT(), first release dying child then change thread_status and at last release waiting parent if it exists. Also, wait until the state of child thread changes to THREAD_DYING then release its TLB
+1. in PROCESS_EXIT(), first release dying child then change thread_status and at last release waiting parent if it exists. Also, wait until the state of child thread changes to THREAD_DYING then release its TLB
     + if releasing waiting parent first, parent may release child's TLB before child release other resources
 
 ### Task 3: File Operation Syscalls
