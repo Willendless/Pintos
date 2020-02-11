@@ -236,7 +236,10 @@ Our code doesn't modify these two variables, or access them before they are crea
 
 #### Synchronization
 
-1. struct semaphore parent_wait;
+1. int ref_cnt
+    + init in thread_create()
+    + decrease in thread_exit()
+    + decrease in process_wait()
 
 #### Rationale
 
