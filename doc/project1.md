@@ -68,10 +68,11 @@ Design Document for Project 1: User Programs
         struct lock lock;                   /* Protects ref_cnt */
         int ref_cnt;                        /* 2=child and parent both alive, 1=either child or parent alive, 0=child and parent both dead */
         tid_t tid;                          /* Child thread id */
-        int exit_code;                     /* Child exit code, if dead. */
+        int exit_code;                      /* Child exit code, if dead. */
         struct semaphore dead;              /* 1=child alive, 0=child dead. */
     }
     ```
+
 
 *Modifying following data structure*
 
@@ -231,60 +232,6 @@ Design Document for Project 1: User Programs
 ### Task 3: File Operation Syscalls
 
 #### Data structures and functions
-*Adding following functions*
-+ CREATE
-    ```c
-    bool create (const char *file_name, unsigned init_size);
-    ```
-    Create a new file named file_name and initialize its size as init_size bytes. Return true if succeeded, otherwise false.
-
-+ REMOVE
-    ```c
-    bool remove (const char *file_name);
-    ```
-    Delete the file named file_name. Return true if succeeded, otherwise false.
-
-+ OPEN
-    ```c
-     int open (const char *file_name);
-    ```
-    Open the file named file_name and return its file descriptor, return -1 if failed.
-
-+ FILESIZE
-    ```c
-     int filesize (int fd);
-    ```
-    Return the size of the file opened as fd.
-
-+ READ
-    ```c
-    int read (int fd, void *buffer, unsigned size);
-    ```
-    Read size of bytes from the file opened as fd and store it in the buffer. Return the size actually read, or -1 if could not read.
-
-+ WRITE
-    ```c
-    int write (int fd, const void *buffer, unsigned size);
-    ```
-    Write size of bytes from the buffer to the file opened as fd. Return the size actually write, or -1 if could not write.
-
-+ SEEK
-    ```c
-    void seek (int fd, unsigned position);
-    ```
-    Change the file pointer to the beginning of the file + position offset.
-
-+ TELL
-    ```c
-    unsigned tell (int fd);
-    ```
-    Return the offset of the file pointer to the beginning of the file.
-
-+ CLOSE
-    ```c
-    void close (int fd);
-    ```
-    Close the file opened as fd.
 
 *Adding following data structure*:
 + file lock
@@ -317,21 +264,23 @@ Design Document for Project 1: User Programs
         struct list children;               /* Completion status of children. */
         struct wait_status *wait_status;    /* This process's completion status. */
         struct list_elem child_elem;        /* List element for parent childs list. */
+        struct file *open_files[128];            /* Open file list. */
     #endif
 
         /* Owned by thread.c. */
         unsigned magic;                     /* Detects stack overflow. */
     };
     ```
-    ```
 
 *Adding following functions:*
+
 + SYSCALL_CREATE
     ```c
     bool syscall_create(const char *file, unsigned initial_size) {
 
     }
     ```
+    + Create a new file named file_name and initialize its size as init_size bytes. Return true if succeeded, otherwise false.
 
 + SYSCALL_REMOVE
     ```c
@@ -339,6 +288,8 @@ Design Document for Project 1: User Programs
 
     }
     ```
+    + Delete the file named file_name. Return true if succeeded, otherwise false.
+
 
 + SYSCALL_OPEN
     ```c
@@ -346,6 +297,8 @@ Design Document for Project 1: User Programs
 
     }
     ```
+    + Open the file named file_name and return its file descriptor, return -1 if failed.
+
 
 + SYSCALL_FILESIZE
     ```c
@@ -353,6 +306,8 @@ Design Document for Project 1: User Programs
 
     }
     ```
+    + Return the size of the file opened as fd.
+
 
 + SYSCALL_READ
     ```c
@@ -360,6 +315,8 @@ Design Document for Project 1: User Programs
 
     }
     ```
+    + Read size of bytes from the file opened as fd and store it in the buffer. Return the size actually read, or -1 if could not read.
+
 
 + SYSCALL_WRITE
     ```c
@@ -367,6 +324,8 @@ Design Document for Project 1: User Programs
 
     }
     ```
+    + Write size of bytes from the buffer to the file opened as fd. Return the size actually write, or -1 if could not write.
+
 
 + SYSCALL_SEEK
     ```c
@@ -374,6 +333,8 @@ Design Document for Project 1: User Programs
 
     }
     ```
+    + Change the file pointer to the beginning of the file + position offset.
+
 
 + SYSCALL_TELL
     ```c
@@ -381,6 +342,8 @@ Design Document for Project 1: User Programs
 
     }
     ```
+    + Return the offset of the file pointer to the beginning of the file.
+
 
 + SYSCALL_CLOSE
     ```c
@@ -388,10 +351,7 @@ Design Document for Project 1: User Programs
 
     }
     ```
-
-*Modifying following functions:*
-
-
+    + Close the file opened as fd.
 
 
 #### Algorithms
