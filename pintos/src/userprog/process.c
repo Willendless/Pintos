@@ -23,6 +23,9 @@ static struct semaphore temporary;
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
+
+
+
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
    before process_execute() returns.  Returns the new process's
@@ -31,18 +34,37 @@ tid_t
 process_execute (const char *file_name)
 {
   char *fn_copy;
+  const char *p;
   tid_t tid;
-
+  int i;
+  char process_name[NAME_MAX];
+  
   sema_init (&temporary, 0);
   /* Make a copy of FILE_NAME.
-     Otherwise there's a race between the caller and load(). */
+     Otherwise there's a race between the cstack_sizeer and load(). */
   fn_copy = palloc_get_page (0);
   if (fn_copy == NULL)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
+  
+  /*
+    Before creating the thread, we need to find the program name from file_name and use it as the thread's name.
+    Author: Xiang
+  */
+  
+  for (p = file_name; *p == ' '; ++p) ;
+  if (*p == '\0') {
+    printf("PROCESS: name error");
+    return TID_ERROR;
+  }
+  for (i = 0; *p != '\0' && *p != ' ' && i < NAME_MAX - 1; ++p, ++i) {
+    process_name[i] = *p;
+  }
+  process_name[i] = '\0';
 
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+  tid = thread_create (process_name, PRI_DEFAULT, start_process, fn_copy);
+
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy);
   return tid;
@@ -53,6 +75,10 @@ process_execute (const char *file_name)
 static void
 start_process (void *file_name_)
 {
+  int i = 0;
+  int argc = 1;
+  int stack_size = 0;
+  char *p;
   char *file_name = file_name_;
   struct intr_frame if_;
   bool success;
@@ -62,14 +88,60 @@ start_process (void *file_name_)
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
-  success = load (file_name, &if_.eip, &if_.esp);
+
+  /*
+    extract prog_name and following arguments from file_name 
+  */
+  char* prog_name = strtok_r(file_name, " ", &file_name);
+  if(prog_name==NULL){
+    //should never be the case. Error in thread_excecute
+    success = false;
+    goto DONE;
+  }
+    
+  success = load (prog_name, &if_.eip, &if_.esp);
 
   if (success) {
-    /*TODO: push argument into stack*/
+    char* arg;
+    while ((arg = strtok_r (NULL, " ", &file_name)) != NULL){
+      ++argc;
+    }
+    stack_size += argc * 4;               // length of string pointer
+    stack_size += 12;                     //length of argv, argc, RA
+    int args_len[argc];
+    for (p = file_name, i = 0; i < argc; i++) {
+      args_len[i] = strcspn (p, " ");
+      stack_size += args_len[i] + 1;      // length of string including '\0'
+      p += strlen(p) - args_len[i];
+      //copy
+      if_.esp -= args_len[i] + 1;
+      memcpy(if_.esp, p, args_len[i] + 1);
+      p += args_len[i] + 1;
+    }
+    char* argv = (char*)if_.esp;
+
+    //add stack align
+    if_.esp -= 16 - stack_size % 16;
+    //if_.esp -= ...
+    if_.esp -= sizeof(char*);
+    // set null
+    *((char **)if_.esp) = NULL;
+    for (i = argc - 1; i >= 0; i--){
+      if_.esp -= sizeof(char*);
+      *((char **)if_.esp) = argv;
+      argv += args_len[i] + 1;
+    }
+    if_.esp -= sizeof(char **);
+    *((char **)if_.esp) = (char *)if_.esp + sizeof(char **);
+    if_.esp -= sizeof(int);
+    *(int *) if_.esp = argc;
+    if_.esp -= sizeof(int);
+    *(int *) if_.esp = 0;
+    
   }
 
 
-
+DONE:
   /* If load failed, quit. */
   palloc_free_page (file_name);
   if (!success)
@@ -77,7 +149,7 @@ start_process (void *file_name_)
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
-     threads/intr-stubs.S).  Because intr_exit takes all of its
+     threads/intr-stubs.S).  Because intr_exit takes stack_size of its
      arguments on the stack in the form of a `struct intr_frame',
      we just point the stack pointer (%esp) to our stack frame
      and jump to it. */
@@ -88,8 +160,8 @@ start_process (void *file_name_)
 /* Waits for thread TID to die and returns its exit status.  If
    it was terminated by the kernel (i.e. killed due to an
    exception), returns -1.  If TID is invalid or if it was not a
-   child of the calling process, or if process_wait() has already
-   been successfully called for the given TID, returns -1
+   child of the cstack_sizeing process, or if process_wait() has already
+   been successfully cstack_sizeed for the given TID, returns -1
    immediately, without waiting.
 
    This function will be implemented in problem 2-2.  For now, it
@@ -129,7 +201,7 @@ process_exit (void)
 
 /* Sets up the CPU for running user code in the current
    thread.
-   This function is called on every context switch. */
+   This function is cstack_sizeed on every context switch. */
 void
 process_activate (void)
 {
@@ -226,7 +298,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   bool success = false;
   int i;
 
-  /* Allocate and activate page directory. */
+  /* stack_sizeocate and activate page directory. */
   t->pagedir = pagedir_create ();
   if (t->pagedir == NULL)
     goto done;
@@ -329,7 +401,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
 /* load() helpers. */
 
-static bool install_page (void *upage, void *kpage, bool writable);
+static bool inststack_size_page (void *upage, void *kpage, bool writable);
 
 /* Checks whether PHDR describes a valid, loadable segment in
    FILE and returns true if so, false otherwise. */
@@ -364,9 +436,9 @@ validate_segment (const struct Elf32_Phdr *phdr, struct file *file)
   if (phdr->p_vaddr + phdr->p_memsz < phdr->p_vaddr)
     return false;
 
-  /* Disallow mapping page 0.
-     Not only is it a bad idea to map page 0, but if we allowed
-     it then user code that passed a null pointer to system calls
+  /* Disstack_sizeow mapping page 0.
+     Not only is it a bad idea to map page 0, but if we stack_sizeowed
+     it then user code that passed a null pointer to system cstack_sizes
      could quite likely panic the kernel by way of null pointer
      assertions in memcpy(), etc. */
   if (phdr->p_vaddr < PGSIZE)
@@ -388,7 +460,7 @@ validate_segment (const struct Elf32_Phdr *phdr, struct file *file)
    The pages initialized by this function must be writable by the
    user process if WRITABLE is true, read-only otherwise.
 
-   Return true if successful, false if a memory allocation error
+   Return true if successful, false if a memory stack_sizeocation error
    or disk read error occurs. */
 static bool
 load_segment (struct file *file, off_t ofs, uint8_t *upage,
@@ -421,7 +493,7 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
       memset (kpage + page_read_bytes, 0, page_zero_bytes);
 
       /* Add the page to the process's address space. */
-      if (!install_page (upage, kpage, writable))
+      if (!inststack_size_page (upage, kpage, writable))
         {
           palloc_free_page (kpage);
           return false;
@@ -446,9 +518,9 @@ setup_stack (void **esp)
   kpage = palloc_get_page (PAL_USER | PAL_ZERO);
   if (kpage != NULL)
     {
-      success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
+      success = inststack_size_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success)
-        *esp = PHYS_BASE;
+        *esp = PHYS_BASE - 20;
       else
         palloc_free_page (kpage);
     }
@@ -461,11 +533,11 @@ setup_stack (void **esp)
    otherwise, it is read-only.
    UPAGE must not already be mapped.
    KPAGE should probably be a page obtained from the user pool
-   with palloc_get_page().
+   with pstack_sizeoc_get_page().
    Returns true on success, false if UPAGE is already mapped or
-   if memory allocation fails. */
+   if memory stack_sizeocation fails. */
 static bool
-install_page (void *upage, void *kpage, bool writable)
+inststack_size_page (void *upage, void *kpage, bool writable)
 {
   struct thread *t = thread_current ();
 
