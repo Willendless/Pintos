@@ -9,6 +9,7 @@
 #include "filesys/filesys.h"
 #include "filesys/file.h"
 #include "userprog/process.h"
+#include <stdbool.h>
 
 static void syscall_handler (struct intr_frame *);
 static bool verify_addr (const void *, size_t);
@@ -71,7 +72,7 @@ syscall_handler (struct intr_frame *f)
    * include it in your final submission.
    */
 
-  // printf("System call number: %d\n", args[0]);
+  //printf("System call number: %d\n", args[0]);
 
   /* verify syscall number */
   if (!verify_addr(args, sizeof(uint32_t*))) {
@@ -83,6 +84,7 @@ syscall_handler (struct intr_frame *f)
     {
     case SYS_PRACTICE:
     case SYS_EXIT:
+    case SYS_EXEC:
     case SYS_WAIT:
     case SYS_REMOVE:
     case SYS_OPEN:
@@ -91,7 +93,6 @@ syscall_handler (struct intr_frame *f)
     case SYS_CLOSE:
       bad_args = !verify_addr (args + 4, sizeof(uint32_t*));
       break;
-    case SYS_EXEC:
     case SYS_CREATE:
     case SYS_SEEK:
       bad_args = !verify_addr (args + 4, 2*sizeof(uint32_t*));
@@ -122,17 +123,16 @@ syscall_handler (struct intr_frame *f)
       syscall_exit(args[1]);
       break;
     case SYS_EXEC: 
-      f->eax = syscall_exec(args[1]); 
+      f->eax = syscall_exec((char *)args[1]); 
       break;
     // case SYS_WAIT:
     //   syscall_wait();
     //   break;
     // case SYS_CREATE: f->eax = syscall_create
     case SYS_WRITE: 
-      syscall_write(args[1], args[2], args[3]); 
+      syscall_write(args[1], (char *)args[2], args[3]); 
       break;
     }
-  syscall_exit (-1);
 }
 
 /* process control syscalls */
@@ -157,13 +157,14 @@ void syscall_exit (int status)
 
 tid_t syscall_exec (const char* cmd_line)
 {
-  int i, len = 0;
+  int i = 0, len = 0;
   tid_t tid = -1;
   // TODO: do not know the length of cmd_line
-  while (cmd_line[i] != '\0' && len < 128)
-    ++len;
-  if (verify_addr (cmd_line, len))
-    tid = process_execute(cmd_line);   
+  do {
+   if (!verify_addr (cmd_line + i, 1))
+    syscall_exit (-1);
+  } while (cmd_line[i++] != '\0' && len < 128);
+  tid = process_execute(cmd_line);   
   return tid;
 }
 

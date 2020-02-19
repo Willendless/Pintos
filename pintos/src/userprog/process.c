@@ -147,10 +147,16 @@ start_process (void *file_name_)
 
 
 DONE:
-  /* If load failed, quit. */
+  /* If load failed, notify parent process and quit. */
   palloc_free_page (file_name_);
-  if (!success)
+  if (!success) {
+    thread_current ()->wait_status->tid = -1;
+    sema_up(&thread_current ()->wait_status->dead);
     thread_exit ();
+  }
+
+  /* If load successed, notify parent process and execute */
+  sema_up(&thread_current ()->wait_status->dead);
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in

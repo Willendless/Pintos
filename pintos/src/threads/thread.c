@@ -11,6 +11,7 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
+#include "threads/malloc.h"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -98,6 +99,7 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+  
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -147,6 +149,18 @@ thread_print_stats (void)
           idle_ticks, kernel_ticks, user_ticks);
 }
 
+
+static void
+init_wait_status (struct wait_status *ws, tid_t tid)
+{
+  lock_init(&ws->lock);
+  lock_acquire (&ws->lock);
+  ws->ref_cnt = 2;
+  lock_release (&ws->lock);
+  ws->tid = tid;
+  sema_init (&ws->dead, 0);
+}
+
 /* Creates a new kernel thread named NAME with the given initial
    PRIORITY, which executes FUNCTION passing AUX as the argument,
    and adds it to the ready queue.  Returns the thread identifier
@@ -170,6 +184,7 @@ thread_create (const char *name, int priority,
   struct kernel_thread_frame *kf;
   struct switch_entry_frame *ef;
   struct switch_threads_frame *sf;
+  struct wait_status *ws;
   tid_t tid;
 
   ASSERT (function != NULL);
@@ -181,7 +196,14 @@ thread_create (const char *name, int priority,
 
   /* Initialize thread. */
   init_thread (t, name, priority);
-  tid = t->tid = allocate_tid ();
+
+  tid = t->tid =  allocate_tid ();
+
+  t->wait_status = ws = (struct wait_status*) malloc (sizeof(struct wait_status));
+  if (ws == NULL)
+    return -1;
+  init_wait_status (ws, tid);
+  list_push_back (&thread_current ()->children, &t->wait_status->elem);
 
   /* Stack frame for kernel_thread(). */
   kf = alloc_frame (t, sizeof *kf);
@@ -201,7 +223,11 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
-  return tid;
+  if (strcmp (name, "idle"))
+    sema_down (&ws->dead);
+
+  /* after child's load finish */
+  return ws->tid;
 }
 
 /* Puts the current thread to sleep.  It will not be scheduled
@@ -391,6 +417,7 @@ idle (void *idle_started_ UNUSED)
   struct semaphore *idle_started = idle_started_;
   idle_thread = thread_current ();
   sema_up (idle_started);
+  sema_up (&idle_thread->wait_status->dead);
 
   for (;;)
     {
@@ -446,6 +473,7 @@ is_thread (struct thread *t)
   return t != NULL && t->magic == THREAD_MAGIC;
 }
 
+
 /* Does basic initialization of T as a blocked thread named
    NAME. */
 static void
@@ -463,6 +491,8 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
+  /* init new components of struct thread */
+  list_init (&t->children);
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
