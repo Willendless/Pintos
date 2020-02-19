@@ -32,4 +32,14 @@ syscall_handler (struct intr_frame *f UNUSED)
       printf ("%s: exit(%d)\n", &thread_current ()->name, args[1]);
       thread_exit ();
     }
+  else if (args[0] == SYS_WRITE)
+    {
+      int fd = args[1];
+      char *buf = args[2];
+      int len = args[3];
+      //printf("fd: %d, len: %d\n", fd, len);
+      if (fd == 1) {
+        putbuf(buf, len);
+      }
+    }
 }

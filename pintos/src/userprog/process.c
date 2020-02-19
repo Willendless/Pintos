@@ -33,11 +33,11 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 tid_t
 process_execute (const char *file_name)
 {
-  char *fn_copy;
-  const char *p;
-  tid_t tid;
   int i;
-  char process_name[NAME_MAX];
+  char *fn_copy;
+  char *p;
+  tid_t tid;
+  char process_name[16]; // process name can have 16 bytes most
   
   sema_init (&temporary, 0);
   /* Make a copy of FILE_NAME.
@@ -52,13 +52,13 @@ process_execute (const char *file_name)
     Author: Xiang
   */
   
-  for (p = file_name; *p == ' '; ++p) ;
+  for (p = fn_copy; *p == ' '; ++p) ;
   if (*p == '\0') {
     printf("PROCESS: name error");
     return TID_ERROR;
   }
-  for (i = 0; *p != '\0' && *p != ' ' && i < NAME_MAX - 1; ++p, ++i) {
-    process_name[i] = *p;
+  for (i = 0; *p != '\0' && *p != ' ' && i < 15; ++p) {
+    process_name[i++] = *p;
   }
   process_name[i] = '\0';
 
@@ -75,11 +75,11 @@ process_execute (const char *file_name)
 static void
 start_process (void *file_name_)
 {
-  int i = 0;
+  int i;
   int argc = 1;
   int stack_size = 0;
-  char *p;
-  char *file_name = file_name_;
+  char *arg;
+  char *file_name, *cmd = file_name_;
   struct intr_frame if_;
   bool success;
 
@@ -92,58 +92,63 @@ start_process (void *file_name_)
   /*
     extract prog_name and following arguments from file_name 
   */
-  char* prog_name = strtok_r(file_name, " ", &file_name);
-  if(prog_name==NULL){
+  file_name = strtok_r (cmd, " ", &cmd);
+  if (file_name == NULL) {
     //should never be the case. Error in thread_excecute
     success = false;
     goto DONE;
   }
     
-  success = load (prog_name, &if_.eip, &if_.esp);
+  success = load (file_name, &if_.eip, &if_.esp);
 
   if (success) {
-    char* arg;
-    while ((arg = strtok_r (NULL, " ", &file_name)) != NULL){
+    char *p;
+    while ((arg = strtok_r (NULL, " ", &cmd)) != NULL){
       ++argc;
     }
+
+    int args_len[argc];
     stack_size += argc * 4;               // length of string pointer
     stack_size += 12;                     //length of argv, argc, RA
-    int args_len[argc];
-    for (p = file_name, i = 0; i < argc; i++) {
-      args_len[i] = strcspn (p, " ");
-      stack_size += args_len[i] + 1;      // length of string including '\0'
-      p += strlen(p) - args_len[i];
-      //copy
+
+    arg = file_name_;
+    for (i = 0; i < argc; ++i) {
+      while (*arg == ' ')
+        ++arg;
+      args_len[i] = strlen(arg);
+      stack_size += args_len[i] + 1;      // length of argv[i]
       if_.esp -= args_len[i] + 1;
-      memcpy(if_.esp, p, args_len[i] + 1);
+      memcpy(if_.esp, arg, args_len[i] + 1);
+      arg += args_len[i] + 1;
+    }
+
+    p = (char*)if_.esp;
+
+    // stack align and argv[argc]
+    if_.esp -= 16 - stack_size % 16;
+    if_.esp -= sizeof(char*);
+    *((char **)if_.esp) = NULL;
+    // argv[i]
+    for (i = argc - 1; i >= 0; --i){
+      if_.esp -= sizeof(char*);
+      *((char **)if_.esp) = p;
       p += args_len[i] + 1;
     }
-    char* argv = (char*)if_.esp;
-
-    //add stack align
-    if_.esp -= 16 - stack_size % 16;
-    //if_.esp -= ...
-    if_.esp -= sizeof(char*);
-    // set null
-    *((char **)if_.esp) = NULL;
-    for (i = argc - 1; i >= 0; i--){
-      if_.esp -= sizeof(char*);
-      *((char **)if_.esp) = argv;
-      argv += args_len[i] + 1;
-    }
+    // argv
     if_.esp -= sizeof(char **);
-    *((char **)if_.esp) = (char *)if_.esp + sizeof(char **);
+    *((char ***)if_.esp) = (char **)(if_.esp + sizeof(char **));
+    // argc
     if_.esp -= sizeof(int);
     *(int *) if_.esp = argc;
+    // RA
     if_.esp -= sizeof(int);
     *(int *) if_.esp = 0;
-    
   }
 
 
 DONE:
   /* If load failed, quit. */
-  palloc_free_page (file_name);
+  palloc_free_page (file_name_);
   if (!success)
     thread_exit ();
 
@@ -520,7 +525,7 @@ setup_stack (void **esp)
     {
       success = inststack_size_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success)
-        *esp = PHYS_BASE - 20;
+        *esp = PHYS_BASE - 16;
       else
         palloc_free_page (kpage);
     }
