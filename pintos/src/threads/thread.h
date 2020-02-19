@@ -16,6 +16,8 @@ enum thread_status
     THREAD_DYING        /* About to be destroyed. */
   };
 
+#define MAX_OPEN_FILES 128
+
 /* Thread identifier type.
    You can redefine this to whatever type you like. */
 typedef int tid_t;
@@ -25,6 +27,17 @@ typedef int tid_t;
 #define PRI_MIN 0                       /* Lowest priority. */
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
+
+struct wait_status
+   {
+      struct list_elem elem;
+      struct lock lock;
+      int ref_cnt;
+      tid_t tid;
+      int exit_code;
+      struct semaphore dead;
+   };
+
 
 /* A kernel thread or user process.
 
@@ -98,6 +111,11 @@ struct thread
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
+
+    /* Modification below */
+    struct list children;
+    struct wait_status *wait_status;
+    struct file *open_files[MAX_OPEN_FILES];
 #endif
 
     /* Owned by thread.c. */
