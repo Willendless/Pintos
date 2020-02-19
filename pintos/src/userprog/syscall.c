@@ -8,6 +8,7 @@
 #include "devices/shutdown.h"
 #include "filesys/filesys.h"
 #include "filesys/file.h"
+#include "userprog/process.h"
 
 static void syscall_handler (struct intr_frame *);
 static bool verify_addr (const void *, size_t);
@@ -117,9 +118,11 @@ syscall_handler (struct intr_frame *f)
     case SYS_HALT: 
       syscall_halt(); 
       break;
-    //TODO: case SYS_EXEC: f->eax = syscall_exec(); break;
     case SYS_EXIT: 
       syscall_exit(args[1]);
+      break;
+    case SYS_EXEC: 
+      f->eax = syscall_exec(args[1]); 
       break;
     // case SYS_WAIT:
     //   syscall_wait();
@@ -129,7 +132,7 @@ syscall_handler (struct intr_frame *f)
       syscall_write(args[1], args[2], args[3]); 
       break;
     }
-
+  syscall_exit (-1);
 }
 
 /* process control syscalls */
@@ -151,8 +154,18 @@ void syscall_exit (int status)
   thread_exit();
 }
 
-// TODO
-tid_t syscall_exec (const char* cmd_line);
+
+tid_t syscall_exec (const char* cmd_line)
+{
+  int i, len = 0;
+  tid_t tid = -1;
+  // TODO: do not know the length of cmd_line
+  while (cmd_line[i] != '\0' && len < 128)
+    ++len;
+  if (verify_addr (cmd_line, len))
+    tid = process_execute(cmd_line);   
+  return tid;
+}
 
 // TODO
 int syscall_wait (tid_t tid);
