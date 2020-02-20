@@ -16,26 +16,8 @@ static bool verify_addr (const void *, size_t);
 static bool verify_pid (pid_t);
 static bool verify_fd (int);
 
-/* process control syscalls */
-int syscall_practice (int);
-void syscall_halt (void);
-tid_t syscall_exec (const char* cmd_line);
-int syscall_wait (tid_t tid);
-void syscall_exit (int status);
-
-/* file operations syscalls */
 
 static struct lock fs_lock;
-
-bool syscall_create (const char*, unsigned initial_size);
-bool syscall_remove (const char*);
-int syscall_open (const char*);
-int syscall_filesize (int fd);
-int syscall_read (int fd, void* buffer, unsigned size);
-int syscall_write (int fd, const void* buffer, unsigned size);
-void syscall_seek (int fd, unsigned position);
-unsigned syscall_tell (int fd);
-void syscall_close (int fd);
 
 void
 syscall_init (void)
@@ -195,7 +177,7 @@ tid_t syscall_exec (const char* cmd_line)
    if (!verify_addr (cmd_line + i, 1))
     syscall_exit (-1);
   } while (cmd_line[i++] != '\0' && len < 128);
-  tid = process_execute(cmd_line);   
+  tid = process_execute (cmd_line);   
   return tid;
 }
 
