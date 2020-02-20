@@ -152,13 +152,13 @@ syscall_handler (struct intr_frame *f)
       f->eax = syscall_read (args[1], (char *)args[2], args[3]);
       break;
     case SYS_WRITE: 
-      syscall_write (args[1], (char *)args[2], args[3]); 
+      f->eax = syscall_write (args[1], (char *)args[2], args[3]); 
       break;
     case SYS_SEEK:
       syscall_seek (args[1], args[2]);
       break;
     case SYS_TELL:
-      syscall_tell (args[1]);
+      f->eax = syscall_tell (args[1]);
       break;
     case SYS_CLOSE:
       syscall_close (args[1]);
@@ -244,6 +244,8 @@ int syscall_open (const char *file)
   lock_acquire (&fs_lock);
   f = filesys_open (file);
   lock_release (&fs_lock);
+  if (f == NULL)
+    return -1;
   while (fd < MAX_OPEN_FILES && thread_current ()->open_files[fd] != NULL)
     ++fd;
   if (fd < MAX_OPEN_FILES)
@@ -270,9 +272,11 @@ int syscall_read (int fd, void* buffer, unsigned size)
 {
   int read_len = -1;
   struct thread *t = thread_current ();
+  if (size == 0)
+    return 0;
   if (!verify_addr (buffer, size) || !verify_fd (fd)) 
     {
-      return -1;
+      syscall_exit (-1);
     } 
   switch (fd)
     {
@@ -295,9 +299,11 @@ int syscall_write (int fd, const void* buffer, unsigned size)
 {
   int write_len = -1;
   struct thread *t = thread_current ();
+  if (size == 0)
+    return 0;
   if (!verify_addr (buffer, size) || !verify_fd (fd)) 
     {
-      return -1;
+      syscall_exit (-1);
     } 
   switch (fd)
     {
