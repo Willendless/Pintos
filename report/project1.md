@@ -18,12 +18,8 @@ Final Report for Project 1: User Programs
 
 ### Task 2
 
-1.  In void syscall_exit(int status), we didn't change thread_current()->wait_status->exit_code to status.
+1. We implement most of our features inside process_*** functions, let syscall_*** functions only verify argument and call process_***.
 
 ### Task 3
 
-1. 
-
-### Questions
-
-1. If syscall failed should we return -1, or exit the thread?
+1. When loading executables, we need to call filesys_open. So a filesys lock is needed in process.c. We used extern statement to refer to the lock in syscall.c.

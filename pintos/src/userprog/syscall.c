@@ -26,6 +26,8 @@ syscall_init (void)
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
 }
 
+/* helper functions to verify variables */
+
 static bool
 verify_addr (const void *p, size_t len)
 {
@@ -99,6 +101,9 @@ syscall_handler (struct intr_frame *f)
   /* verify arguments addr*/
   switch (args[0])
     {
+    case SYS_HALT:
+      /* have no argument */
+      break;
     case SYS_PRACTICE:
     case SYS_EXIT:
     case SYS_EXEC:
@@ -108,17 +113,21 @@ syscall_handler (struct intr_frame *f)
     case SYS_FILESIZE:
     case SYS_TELL:
     case SYS_CLOSE:
+      /* these cases have one argument */
       bad_args = !verify_addr (args + 4, sizeof(uint32_t*));
       break;
     case SYS_CREATE:
     case SYS_SEEK:
+      /* these cases have two arguments */
       bad_args = !verify_addr (args + 4, 2*sizeof(uint32_t*));
       break;
     case SYS_READ:
     case SYS_WRITE:
+      /* these cases have three arguments */
       bad_args = !verify_addr (args + 4, 3*sizeof(uint32_t*));
       break;
     default:
+      /* Incorrect syscall number */
       bad_args = true;
     }
 
@@ -176,6 +185,7 @@ syscall_handler (struct intr_frame *f)
 }
 
 /* process control syscalls */
+
 int syscall_practice (int arg) 
 {
   return arg + 1;
@@ -204,7 +214,6 @@ tid_t syscall_exec (const char* cmd_line)
   return tid;
 }
 
-// TODO
 int syscall_wait (tid_t tid)
 {
   int exit_code = 0;
@@ -250,7 +259,6 @@ int syscall_open (const char *file)
     return -1;
   while (fd < MAX_OPEN_FILES && thread_current ()->open_files[fd] != NULL)
     ++fd;
-  //printf("current thread: %s, file pointer: %p, fd number: %d\n", thread_current()->name, f, fd);
   if (fd < MAX_OPEN_FILES)
     thread_current ()->open_files[fd] = f;
   else {
@@ -283,22 +291,21 @@ int syscall_read (int fd, void* buffer, unsigned size)
   if (size == 0)
     return 0;
   if (!verify_addr (buffer, size) || !verify_fd (fd)) 
-    {
-      syscall_exit (-1);
-    } 
+    syscall_exit (-1);
   switch (fd)
     {
       case 0:
-        // Should read from stdin
+        // Read from stdin
         read_len = 0;
         while (read_len < size){
           ((char*)buffer)[read_len++] = (char)input_getc();
         }
         break;
       case 1:
+        // Nothing happens if read from stdout
         break;
       default:
-        ASSERT(t->open_files != NULL); //Question: Is this really needed?
+        ASSERT(t->open_files != NULL);
         struct file *f = t->open_files[fd];
         lock_acquire (&fs_lock);
         read_len = file_read (f, buffer, size);
@@ -314,19 +321,19 @@ int syscall_write (int fd, const void* buffer, unsigned size)
   if (size == 0)
     return 0;
   if (!verify_addr (buffer, size) || !verify_fd (fd)) 
-    {
-      syscall_exit (-1);
-    } 
+    syscall_exit (-1);
   switch (fd)
     {
       case 0:
+        // Nothing happens if write to stdin
         break;
       case 1:
+        // Write to stdout
         putbuf (buffer, size);
         write_len = size;
         break;
       default:
-        ASSERT(t->open_files != NULL); //Question: Necessary?
+        ASSERT(t->open_files != NULL);
         struct file *f = t->open_files[fd];
         lock_acquire (&fs_lock);
         write_len = file_write (f, buffer, size);

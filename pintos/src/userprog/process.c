@@ -24,6 +24,7 @@ static struct semaphore temporary;
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
+/* the file system lock from syscall.c */
 extern struct lock fs_lock;
 
 /* Starts a new thread running a user program loaded from
@@ -37,7 +38,8 @@ process_execute (const char *file_name)
   char *fn_copy;
   char *p;
   tid_t tid;
-  char process_name[16]; // process name can have 16 bytes most
+  const int MAX_NAME_LEN = 16;
+  char process_name[MAX_NAME_LEN]; // process name can have 16 bytes most
   
   sema_init (&temporary, 0);
   /* Make a copy of FILE_NAME.
@@ -56,7 +58,7 @@ process_execute (const char *file_name)
     printf("PROCESS: name error");
     return TID_ERROR;
   }
-  for (i = 0; *p != '\0' && *p != ' ' && i < 15; ++p) {
+  for (i = 0; *p != '\0' && *p != ' ' && i < MAX_NAME_LEN-1; ++p) {
     process_name[i++] = *p;
   }
   process_name[i] = '\0';
@@ -86,9 +88,7 @@ start_process (void *file_name_)
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
 
-  /*
-    extract prog_name and following arguments from file_name 
-  */
+  /* extract prog_name and following arguments from file_name */
   file_name = strtok_r (cmd, " ", &cmd);
   if (file_name == NULL) {
     //should never be the case. Error in thread_excecute
@@ -183,6 +183,7 @@ process_wait (tid_t child_tid)
   int exit_code = -1;
   bool free_cws = false;
   
+  /* find the child's wait_status */
   for (e = list_begin (&cur->children); e != list_end (&cur->children); e = list_next (e)) {
     struct wait_status *ws = list_entry (e, struct wait_status, elem);
     if (ws->tid == child_tid) {
@@ -193,6 +194,7 @@ process_wait (tid_t child_tid)
   if (cws == NULL)
     return -1;
 
+  /* wait for child to exit and remove wait_status from children & destroy it */
   sema_down (&cws->dead);
   exit_code = cws->exit_code;
   lock_acquire (&cws->lock);
@@ -243,8 +245,7 @@ process_exit (void)
     lock_release(&fs_lock);
   }
 
-  sema_up (&ws->dead);
-
+  // Reduce all children wait_status's ref_cnt, free it if ref_cnt==0
   while (!list_empty (&cur->children)) {
     struct list_elem *e = list_pop_front (&cur->children);
     struct wait_status *ws = list_entry (e, struct wait_status, elem);
@@ -259,28 +260,7 @@ process_exit (void)
     }
   }
 
-  for (i = 2; i < MAX_OPEN_FILES; ++i) {
-    if (cur->open_files[i] != NULL)
-      file_close (cur->open_files[i]);
-  }
-
-  // if (cur->this_executable != NULL) {
-  //   file_close (cur->this_executable);
-  // }
-
-  // for (e = list_begin (&cur->children); e != list_end (&cur->children); e = list_remove (e)) {
-  //   struct wait_status *ws = list_entry (e, struct wait_status, elem);
-  //   bool free_ws = false;
-  //   lock_acquire (&ws->lock);
-  //   ws->ref_cnt--;
-  //   if (ws->ref_cnt == 0)
-  //     free_ws = true;
-  //   lock_release (&ws->lock);
-  //   if (free_ws) {
-  //     free (ws);
-  //   }
-  // }
-
+  // Reduce wait_status's ref_cnt, free it if ref_cnt==0
   lock_acquire (&ws->lock);
   ws->ref_cnt--;
   if (!ws->ref_cnt)
@@ -289,6 +269,15 @@ process_exit (void)
   if (free_ws) {
     free (ws);
   }
+
+  // Close opened files
+  for (i = 2; i < MAX_OPEN_FILES; ++i) {
+    if (cur->open_files[i] != NULL)
+      file_close (cur->open_files[i]);
+  }
+
+  // Wake up a waiting parent
+  sema_up (&ws->dead);
 
 }
 
@@ -400,11 +389,11 @@ load (const char *file_name, void (**eip) (void), void **esp)
   /* Open executable file. */
   file = filesys_open (file_name);
   if (file == NULL)
-    {
-      printf ("load: %s: open failed\n", file_name);
-      t->this_executable = NULL;
-      goto done;
-    }
+  {
+    printf ("load: %s: open failed\n", file_name);
+    t->this_executable = NULL;
+    goto done;
+  }
 
   /* Protect running program and deny write */
   lock_acquire(&fs_lock);
