@@ -186,7 +186,7 @@ tid_t syscall_exec (const char* cmd_line)
   tid_t tid = -1;
   if(!verify_str(cmd_line))
     syscall_exit(-1);
-  tid = process_execute (cmd_line);   
+  tid = process_execute (cmd_line);
   return tid;
 }
 
