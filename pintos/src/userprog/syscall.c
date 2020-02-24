@@ -13,7 +13,7 @@
 
 static void syscall_handler (struct intr_frame *);
 static bool verify_addr (const void *, size_t);
-static bool verify_pid (pid_t);
+//static bool verify_pid (pid_t);
 static bool verify_fd (int);
 
 
@@ -47,6 +47,19 @@ verify_fd (int fd)
 {
   return (fd == 0) || (fd == 1) || ((fd > 1) && (fd < MAX_OPEN_FILES) 
           && (thread_current ()->open_files[fd] != NULL));
+}
+
+static bool
+verify_str (const char *str){
+  const int MAX_LEN = 128;
+  int len = 0;
+  if (str == NULL)
+    return false;
+  do{
+    if(!verify_addr(str, sizeof(char)))
+      return false;
+  }while (*(str++)!='\0' && (++len) < MAX_LEN);
+  return true;
 }
 
 static void
@@ -162,7 +175,7 @@ void syscall_halt ()
 void syscall_exit (int status)
 {
   struct thread *t = thread_current();
-  printf ("%s: exit(%d)\n", &t->name, status);
+  printf ("%s: exit(%d)\n", t->name, status);
   //t->wait_status->exit_code = status;
   thread_exit();
 }
@@ -170,13 +183,9 @@ void syscall_exit (int status)
 
 tid_t syscall_exec (const char* cmd_line)
 {
-  int i = 0, len = 0;
   tid_t tid = -1;
-  // TODO: do not know the length of cmd_line
-  do {
-   if (!verify_addr (cmd_line + i, 1))
-    syscall_exit (-1);
-  } while (cmd_line[i++] != '\0' && len < 128);
+  if(!verify_str(cmd_line))
+    syscall_exit(-1);
   tid = process_execute (cmd_line);   
   return tid;
 }
@@ -188,12 +197,9 @@ int syscall_wait (tid_t tid);
 
 bool syscall_create (const char *file, unsigned initial_size)
 {
-  int i = 0, len = 0;
   bool result = false;
-  do {
-    if (!verify_addr (file + i, 1))
-      syscall_exit (-1);
-  } while (file[i++] != '\0' && len < 128);
+  if(!verify_str(file))
+    syscall_exit(-1);
   lock_acquire (&fs_lock);
   result = filesys_create (file, initial_size);
   lock_release (&fs_lock);
@@ -202,12 +208,9 @@ bool syscall_create (const char *file, unsigned initial_size)
 
 bool syscall_remove (const char *file)
 {
-  int i = 0, len = 0;
   bool result = false;
-  do {
-    if (!verify_addr (file + i, 1))
-      syscall_exit (-1);
-  } while (file[i++] != '\0' && len < 128);
+  if(!verify_str(file))
+    syscall_exit(-1);
   lock_acquire (&fs_lock);
   result = filesys_remove (file);
   lock_release (&fs_lock);
@@ -216,13 +219,10 @@ bool syscall_remove (const char *file)
 
 int syscall_open (const char *file)
 {
-  int i = 0, len = 0;
   struct file *f;
   int fd = 2;
-  do {
-    if (!verify_addr (file + i, 1))
-      syscall_exit (-1);
-  } while (file[i++] != '\0' && len < 128);
+  if(!verify_str(file))
+    syscall_exit(-1);
   lock_acquire (&fs_lock);
   f = filesys_open (file);
   lock_release (&fs_lock);
@@ -233,6 +233,7 @@ int syscall_open (const char *file)
   if (fd < MAX_OPEN_FILES)
     thread_current ()->open_files[fd] = f;
   else 
+    //Question: shouldn't we close f in this case?
     fd = -1;
   return fd;
 }
@@ -263,11 +264,16 @@ int syscall_read (int fd, void* buffer, unsigned size)
   switch (fd)
     {
       case 0:
+        // Should read from stdin
+        read_len = 0;
+        while(read_len < size){
+          ((char*)buffer)[read_len++] = (char)input_getc();
+        }
         break;
       case 1:
         break;
       default:
-        ASSERT(t->open_files != NULL);
+        ASSERT(t->open_files != NULL); //Question: Is this really needed?
         struct file *f = t->open_files[fd];
         lock_acquire (&fs_lock);
         read_len = file_read (f, buffer, size);
@@ -275,7 +281,6 @@ int syscall_read (int fd, void* buffer, unsigned size)
     }
   return read_len;
 }
-
 
 int syscall_write (int fd, const void* buffer, unsigned size) 
 {
@@ -296,7 +301,7 @@ int syscall_write (int fd, const void* buffer, unsigned size)
         write_len = size;
         break;
       default:
-        ASSERT(t->open_files != NULL);
+        ASSERT(t->open_files != NULL); //Question: Necessary?
         struct file *f = t->open_files[fd];
         lock_acquire (&fs_lock);
         write_len = file_write (f, buffer, size);

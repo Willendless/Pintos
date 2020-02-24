@@ -49,7 +49,6 @@ process_execute (const char *file_name)
   
   /*
     Before creating the thread, we need to find the program name from file_name and use it as the thread's name.
-    Author: Xiang
   */
   
   for (p = fn_copy; *p == ' '; ++p) ;
