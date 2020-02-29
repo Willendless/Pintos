@@ -18,12 +18,11 @@
 #include "threads/synch.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "threads/malloc.h"
 
 static struct semaphore temporary;
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
-
-
 
 
 /* Starts a new thread running a user program loaded from
@@ -63,9 +62,7 @@ process_execute (const char *file_name)
 
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (process_name, PRI_DEFAULT, start_process, fn_copy);
-
-  if (tid == TID_ERROR)
-    palloc_free_page (fn_copy);
+  
   return tid;
 }
 
@@ -177,10 +174,36 @@ DONE:
    This function will be implemented in problem 2-2.  For now, it
    does nothing. */
 int
-process_wait (tid_t child_tid UNUSED)
+process_wait (tid_t child_tid)
 {
-  sema_down (&temporary);
-  return 0;
+  struct list_elem *e;
+  struct thread *cur = thread_current ();
+  struct wait_status *cws = NULL;
+  int exit_code = -1;
+  bool free_cws = false;
+  
+  for (e = list_begin (&cur->children); e != list_end (&cur->children); e = list_next (e)) {
+    struct wait_status *ws = list_entry (e, struct wait_status, elem);
+    if (ws->tid == child_tid) {
+      cws = ws;
+      break;
+    }
+  }
+  if (cws == NULL)
+    return -1;
+
+  sema_down (&cws->dead);
+  exit_code = cws->exit_code;
+  lock_acquire (&cws->lock);
+  cws->ref_cnt --;
+  if (cws->ref_cnt == 0)
+    free_cws = true;
+  lock_release (&cws->lock);
+  list_remove (&cws->elem);
+  if (free_cws) {
+    free (cws);
+  }
+  return exit_code;
 }
 
 /* Free the current process's resources. */
@@ -188,7 +211,10 @@ void
 process_exit (void)
 {
   struct thread *cur = thread_current ();
+  struct wait_status *ws = cur->wait_status;
+  struct list_elem *e;
   uint32_t *pd;
+  bool free_ws = false;
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -206,7 +232,51 @@ process_exit (void)
       pagedir_activate (NULL);
       pagedir_destroy (pd);
     }
-  sema_up (&temporary);
+
+  /* give right to modify this execuable */
+  if(cur->this_executable!=NULL){
+    file_allow_write (cur->this_executable);
+    file_close (cur->this_executable);
+  }
+
+  sema_up (&ws->dead);
+
+  while (!list_empty (&cur->children)) {
+    struct list_elem *e = list_pop_front (&cur->children);
+    struct wait_status *ws = list_entry (e, struct wait_status, elem);
+    bool free_ws = false;
+    lock_acquire (&ws->lock);
+    ws->ref_cnt--;
+    if (ws->ref_cnt == 0)
+      free_ws = true;
+    lock_release (&ws->lock);
+    if (free_ws) {
+      free (ws);
+    }
+  }
+
+  // for (e = list_begin (&cur->children); e != list_end (&cur->children); e = list_remove (e)) {
+  //   struct wait_status *ws = list_entry (e, struct wait_status, elem);
+  //   bool free_ws = false;
+  //   lock_acquire (&ws->lock);
+  //   ws->ref_cnt--;
+  //   if (ws->ref_cnt == 0)
+  //     free_ws = true;
+  //   lock_release (&ws->lock);
+  //   if (free_ws) {
+  //     free (ws);
+  //   }
+  // }
+
+  lock_acquire (&ws->lock);
+  ws->ref_cnt--;
+  if (!ws->ref_cnt)
+    free_ws = true;
+  lock_release (&ws->lock);
+  if (free_ws) {
+    free (ws);
+  }
+
 }
 
 /* Sets up the CPU for running user code in the current
@@ -319,8 +389,13 @@ load (const char *file_name, void (**eip) (void), void **esp)
   if (file == NULL)
     {
       printf ("load: %s: open failed\n", file_name);
+      t->this_executable = NULL;
       goto done;
     }
+
+  /* Protect running program and deny write */
+  file_deny_write(file);
+  t->this_executable = file;
 
   /* Read and verify executable header. */
   if (file_read (file, &ehdr, sizeof ehdr) != sizeof ehdr
@@ -405,7 +480,6 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
  done:
   /* We arrive here whether the load is successful or not. */
-  file_close (file);
   return success;
 }
 

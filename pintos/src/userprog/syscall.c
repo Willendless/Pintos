@@ -13,8 +13,9 @@
 
 static void syscall_handler (struct intr_frame *);
 static bool verify_addr (const void *, size_t);
-//static bool verify_pid (pid_t);
+static bool verify_tid (tid_t);
 static bool verify_fd (int);
+static bool verify_str (const char *);
 
 
 static struct lock fs_lock;
@@ -60,6 +61,20 @@ verify_str (const char *str){
       return false;
   }while (*(str++)!='\0' && (++len) < MAX_LEN);
   return true;
+}
+
+static bool
+verify_tid (tid_t tid) 
+{
+  struct list_elem *e;
+  struct thread *cur = thread_current();
+  for (e = list_begin (&cur->children); e != list_end (&cur->children); e = list_next (e)) {
+    struct wait_status *ws = list_entry (e, struct wait_status, elem);
+    if (ws->tid == tid) {
+      return true;
+    }
+  } 
+  return false;
 }
 
 static void
@@ -128,9 +143,9 @@ syscall_handler (struct intr_frame *f)
     case SYS_EXEC: 
       f->eax = syscall_exec ((char *)args[1]); 
       break;
-    // case SYS_WAIT:
-    //   syscall_wait();
-    //   break;
+    case SYS_WAIT:
+      f->eax = syscall_wait ((tid_t)args[1]);
+      break;
     case SYS_CREATE: 
       f->eax = syscall_create ((char *)args[1], args[2]);
       break;
@@ -176,7 +191,7 @@ void syscall_exit (int status)
 {
   struct thread *t = thread_current();
   printf ("%s: exit(%d)\n", t->name, status);
-  //t->wait_status->exit_code = status;
+  t->wait_status->exit_code = status;
   thread_exit();
 }
 
@@ -184,14 +199,19 @@ void syscall_exit (int status)
 tid_t syscall_exec (const char* cmd_line)
 {
   tid_t tid = -1;
-  if(!verify_str(cmd_line))
+  if (!verify_str(cmd_line))
     syscall_exit(-1);
   tid = process_execute (cmd_line);
   return tid;
 }
 
 // TODO
-int syscall_wait (tid_t tid);
+int syscall_wait (tid_t tid)
+{
+  int exit_code = 0;
+  exit_code = process_wait (tid);
+  return exit_code;
+}
 
 /* file operations syscalls */
 
@@ -232,9 +252,13 @@ int syscall_open (const char *file)
     ++fd;
   if (fd < MAX_OPEN_FILES)
     thread_current ()->open_files[fd] = f;
-  else 
-    //Question: shouldn't we close f in this case?
+  else {
+    lock_acquire (&fs_lock);
+    file_close(f);
+    lock_release (&fs_lock);
     fd = -1;
+  }
+    
   return fd;
 }
 
@@ -266,7 +290,7 @@ int syscall_read (int fd, void* buffer, unsigned size)
       case 0:
         // Should read from stdin
         read_len = 0;
-        while(read_len < size){
+        while (read_len < size){
           ((char*)buffer)[read_len++] = (char)input_getc();
         }
         break;

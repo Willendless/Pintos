@@ -116,6 +116,7 @@ struct thread
     struct list children;
     struct wait_status *wait_status;
     struct file *open_files[MAX_OPEN_FILES];
+    struct file *this_executable;
 #endif
 
     /* Owned by thread.c. */

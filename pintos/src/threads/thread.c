@@ -186,6 +186,7 @@ thread_create (const char *name, int priority,
   struct switch_threads_frame *sf;
   struct wait_status *ws;
   tid_t tid;
+  bool free_cws;
 
   ASSERT (function != NULL);
 
@@ -223,11 +224,25 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
-  if (strcmp (name, "idle"))
+  if (strcmp (name, "idle")) {
     sema_down (&ws->dead);
+    tid = ws->tid;
+    if (tid == -1) {
+      list_remove (&ws->elem);
+      lock_acquire (&ws->lock);
+      ws->ref_cnt--;
+      if (ws->ref_cnt == 0) {
+        free_cws = true;
+      }
+      lock_release (&ws->lock);
+      if (free_cws) {
+        free (ws);
+      }
+   }
+  }
 
   /* after child's load finish */
-  return ws->tid;
+  return tid;
 }
 
 /* Puts the current thread to sleep.  It will not be scheduled
