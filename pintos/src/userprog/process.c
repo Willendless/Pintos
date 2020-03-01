@@ -216,6 +216,7 @@ process_exit (void)
   struct list_elem *e;
   uint32_t *pd;
   bool free_ws = false;
+  int i;
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -257,6 +258,15 @@ process_exit (void)
       free (ws);
     }
   }
+
+  for (i = 2; i < MAX_OPEN_FILES; ++i) {
+    if (cur->open_files[i] != NULL)
+      file_close (cur->open_files[i]);
+  }
+
+  // if (cur->this_executable != NULL) {
+  //   file_close (cur->this_executable);
+  // }
 
   // for (e = list_begin (&cur->children); e != list_end (&cur->children); e = list_remove (e)) {
   //   struct wait_status *ws = list_entry (e, struct wait_status, elem);
