@@ -17,8 +17,7 @@ static bool verify_tid (tid_t);
 static bool verify_fd (int);
 static bool verify_str (const char *);
 
-
-static struct lock fs_lock;
+struct lock fs_lock;
 
 void
 syscall_init (void)
@@ -246,10 +245,12 @@ int syscall_open (const char *file)
   lock_acquire (&fs_lock);
   f = filesys_open (file);
   lock_release (&fs_lock);
+  
   if (f == NULL)
     return -1;
   while (fd < MAX_OPEN_FILES && thread_current ()->open_files[fd] != NULL)
     ++fd;
+  //printf("current thread: %s, file pointer: %p, fd number: %d\n", thread_current()->name, f, fd);
   if (fd < MAX_OPEN_FILES)
     thread_current ()->open_files[fd] = f;
   else {

@@ -24,6 +24,7 @@ static struct semaphore temporary;
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
+extern struct lock fs_lock;
 
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
@@ -235,8 +236,10 @@ process_exit (void)
 
   /* give right to modify this execuable */
   if(cur->this_executable!=NULL){
+    lock_acquire(&fs_lock);
     file_allow_write (cur->this_executable);
     file_close (cur->this_executable);
+    lock_release(&fs_lock);
   }
 
   sema_up (&ws->dead);
@@ -394,8 +397,10 @@ load (const char *file_name, void (**eip) (void), void **esp)
     }
 
   /* Protect running program and deny write */
+  lock_acquire(&fs_lock);
   file_deny_write(file);
   t->this_executable = file;
+  lock_release(&fs_lock);
 
   /* Read and verify executable header. */
   if (file_read (file, &ehdr, sizeof ehdr) != sizeof ehdr
