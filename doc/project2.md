@@ -4,9 +4,15 @@ Design Document for Project 2: Threads
 ## Group Members
 
 * Jiarui Li <jiaruili@berkeley.edu>
+<<<<<<< HEAD
 * FirstName LastName <email@domain.example>
 * FirstName LastName <email@domain.example>
 * FirstName LastName <email@domain.example>
+=======
+* Xiang Zhang <xzhang1048576@berkeley.edu>
+* Joel Kattapuram <joelkattapuram@berkeley.edu>
+* Kallan Bao < kallanbao@berkeley.edu>
+>>>>>>> 792def34bfc0dca4bd4e8f355f3a714c51ed59b2
 
 ## Design Overview
 
