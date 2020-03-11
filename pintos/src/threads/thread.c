@@ -149,7 +149,7 @@ thread_print_stats (void)
           idle_ticks, kernel_ticks, user_ticks);
 }
 
-
+#ifdef USERPROG
 static void
 init_wait_status (struct wait_status *ws, tid_t tid)
 {
@@ -160,6 +160,7 @@ init_wait_status (struct wait_status *ws, tid_t tid)
   ws->tid = tid;
   sema_init (&ws->dead, 0);
 }
+#endif
 
 /* Creates a new kernel thread named NAME with the given initial
    PRIORITY, which executes FUNCTION passing AUX as the argument,
@@ -184,9 +185,11 @@ thread_create (const char *name, int priority,
   struct kernel_thread_frame *kf;
   struct switch_entry_frame *ef;
   struct switch_threads_frame *sf;
-  struct wait_status *ws;
   tid_t tid;
+#ifdef USERPROG
+  struct wait_status *ws;
   bool free_cws;
+#endif
 
   ASSERT (function != NULL);
 
@@ -200,12 +203,13 @@ thread_create (const char *name, int priority,
 
   tid = t->tid =  allocate_tid ();
 
+#ifdef USERPROG
   t->wait_status = ws = (struct wait_status*) malloc (sizeof(struct wait_status));
   if (ws == NULL)
     return -1;
   init_wait_status (ws, tid);
   list_push_back (&thread_current ()->children, &t->wait_status->elem);
-
+#endif
   /* Stack frame for kernel_thread(). */
   kf = alloc_frame (t, sizeof *kf);
   kf->eip = NULL;
@@ -224,6 +228,7 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
+#ifdef USERPROG
   if (strcmp (name, "idle")) {
     sema_down (&ws->dead);
     tid = ws->tid;
@@ -240,6 +245,7 @@ thread_create (const char *name, int priority,
       }
    }
   }
+#endif
 
   /* after child's load finish */
   return tid;
@@ -432,7 +438,9 @@ idle (void *idle_started_ UNUSED)
   struct semaphore *idle_started = idle_started_;
   idle_thread = thread_current ();
   sema_up (idle_started);
+#ifdef USERPROG
   sema_up (&idle_thread->wait_status->dead);
+#endif
 
   for (;;)
     {
@@ -506,8 +514,10 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
+#ifdef USERPROG
   /* init new components of struct thread */
   list_init (&t->children);
+#endif
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);

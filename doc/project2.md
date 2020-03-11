@@ -22,8 +22,6 @@ Design Document for Project 2: Threads
 
 ### Task 2: Priority Scheduler
 
-### Task 1: Efficient Alarm Clock
-
 #### Data structures and functions
 
 #### Algorithms
@@ -36,8 +34,27 @@ Design Document for Project 2: Threads
 
 ### Question 1
 
+1. kernel thread
+    + program counter:
+    + stack pointer:
+    + registers:
+
+2. user thread
+    + program counter:
+    + stack pointer:
+    + registers:
+
 ### Question 2
+
+1. when
+    + 
+2. where 
+    + thread.c: thread_schedule_tail()
+3. why
 
 ### Question 3
 
+
 ### Question 4
+
+
