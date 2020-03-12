@@ -19,7 +19,7 @@ Design Document for Project 2: Threads
     ```c
     struct list wait_list;
     ```
-    + Use ordered list **wait_list** to store sleep threads waiting for timer to wake up.
+    + Use ordered list `wait_list` to store sleep threads waiting for timer to wake up.
 
 *Modifying following data structure:*
 + struct thread
@@ -31,7 +31,7 @@ Design Document for Project 2: Threads
         /* ... */
       };
     ```
-    + Add **wakeup_time** to store sleep thread's wake up time. Undefined when thread is not in state **THREAD_BLOCKED**.
+    + Add `wakeup_time` to store sleep thread's wake up time. Undefined when thread is not in state `THREAD_BLOCKED`.
     
 *Adding following functions:*
 + wait_list_less();
@@ -40,50 +40,49 @@ Design Document for Project 2: Threads
                         const struct list_elem *b,
                         void *aux));
     ```
-    + *list_insert_ordered()* helper function: Compare relative order of two thread in wait_list.
+    + `list_insert_ordered()` helper function: Compare relative order of two thread in `wait_list`.
 
 *Modifying following functions:*
 + thread_tick()
     ```c
     void thread_tick (void);
     ```
-    + Examine **wait_list** and put threads to *ready_list* if wake_time is reached.
+    + Examine `wait_list` and put threads to `ready_list` if wake_time is reached.
 
 + timer_sleep
     ```c
     void timer_sleep (int64_t ticks);
     ```
-    + Initiate **wakeup_time** and insert current thread to **wait_list**.
+    + Initiate `wakeup_time` and insert current thread to `wait_list`.
 
 #### Algorithms
 
 1. thread_tick
-    + while **wait_list** is not empty
-        + if the first thread reached its **wakeup_time**:
+    + while `wait_list` is not empty
+        + if the first thread reached its `wakeup_time`:
             + pop front thread
-            + insert it into **ready_list**
+            + insert it into `ready_list`
         + else:
             + break
 
 2. timer_sleep
-    + Calculate **wakeup_time** for current thread.
+    + Calculate `wakeup_time` for current thread.
     + Disable interrupt
-    + Set state of current thread to **THREAD_BLOCKED**.
-    + Insert thread into **wait_list** order by **wakeup_time** ascend.
+    + Set state of current thread to `THREAD_BLOCKED`.
+    + Insert thread into `wait_list` order by `wakeup_time` ascend.
     + Enable interrupt 
     + thread_yield()
     
 #### Synchronization
 
 1. struct list wait_list
-    + insert into wait_list in timer_sleep(), interrupt is disabled so it is atomic.
-    + pop wait_list in thread_tick(). It is an interrupt so no other thread will be excecuting timer_sleep() or thread_tick()
+    + insert into wait_list in `timer_sleep()`, interrupt is disabled so it is atomic.
+    + pop `wait_list` in `thread_tick()`. It is an interrupt so no other thread will be excecuting `timer_sleep()` or `thread_tick()`
     
 
 #### Rationale
 
-+ Use a sorted list ordered by `wakeup_time` so each insert cost O(n), pop cost O(1). Because thread_tick() is more often excuted, this implementation accelerates performance.
-+ 
++ Use a sorted list ordered by `wakeup_time` so each insert cost O(n), pop cost O(1). Because `thread_tick()` is more often excuted, this implementation accelerates performance.
 
 ### Task 2: Priority Scheduler
 
@@ -119,7 +118,7 @@ Design Document for Project 2: Threads
   ```c
   void thread_recursive_donate(struct thread* t, int donate_priority)
   ```
-  + Update the **effective_priority** of thread t. If **effective_priority** changes and the thread is waiting for a lock, call recursively on the lock owner.
+  + Update the `effective_priority` of thread t. If `effective_priority` changes and the thread is waiting for a lock, call recursively on the lock owner.
 
 *Modifying following functions*
 
@@ -150,7 +149,7 @@ Design Document for Project 2: Threads
   ```c
   void sema_up (struct semaphore *sema)
   ```
-  + yield CPU if the unblocked thread has a higher priority.
+  + call `thread_yield` if the unblocked thread has a higher priority.
 
 + lock_release()
   ```c
@@ -164,7 +163,7 @@ Design Document for Project 2: Threads
   ```c
   void thread_yield (void)
   ```
-  +  orderly insert current thread into ready_list by **effective_priority**
+  +  orderly insert current thread into ready_list by `effective_priority`
 
 4. **RUNNING -> WAIT**
 
@@ -186,7 +185,7 @@ Design Document for Project 2: Threads
   ```
   + orderly insert current thread into `cond->waiters`
 
-3. **PRIORITY CHANGE**
+5. **PRIORITY CHANGE**
 
 + thread_set_priority()
   ```c
@@ -198,19 +197,19 @@ Design Document for Project 2: Threads
   ```c
   int thread_get_priority ();
   ```
-  + get the thread's effective priority instead of base priority
+  + get the thread's `effective_priority` instead of base priority
   
 #### Algorithms
 
 #### Choosing the next thread to run
 
-+ keep ready_list and wait_list ordered by **effective_priority** 
-1. thread_create()
++ keep ready_list and wait_list ordered by `effective_priority` 
+1. `thread_create()`
   + if new thread's priority is higher than current thread, immediately yield to let scheduler run the new thread.
 
 2. priority scheduler
   + Save previous thread's PC, SP, etc
-  + Choose the thread with maximum **effective_priority** from **ready_list**(pop the first one)
+  + Choose the thread with maximum `effective_priority` from `ready_list`(pop the first one)
   + Set PC, SP, etc with current thread's PC, SP, etc.
 
 #### Acquiring a lock
@@ -233,11 +232,11 @@ Design Document for Project 2: Threads
 #### Computing the effective priority
 
 1. When thread is initialized in `thread_create()`, `effective_priority` is the same as `base priority`
-2. Updating **effective_priority** using thread_recursive_donate()
+2. Updating `effective_priority` using thread_recursive_donate()
   + Assert the interrupt is disabled
-  + Set t's **effective_priority** as the maximum of **donate_priority** and t's **effective_priority**
-  + If t's **effective_priority** has changed, and t is waiting for a lock:
-    + call *thread_recursive_donate* on the lock's owner with **donate_priority**
+  + Set t's `effective_priority` as the maximum of `donate_priority` and t's `effective_priority`
+  + If t's `effective_priority` has changed, and t is waiting for a lock:
+    + call *thread_recursive_donate* on the lock's owner with `donate_priority`
 
 #### Priority scheduling for semaphores and locks
 
@@ -256,20 +255,20 @@ Design Document for Project 2: Threads
 #### Setting and getting thread's priority
 
 1. thread_set_priority
-  + if **new_priority** >= **effective_priority**, set **effective_priority** = **new_priority**
-  + else if **base_priority** == **effective_priority**
-    + get the highest **effective_priority** from the waiters of each lock in **owned_locks**
-    + set **effective_priority** = the maximum of these priorities and **new_priority**
-  + Set current **base_priority** as **new_priority**  
+  + if `new_priority` >= `effective_priority`, set `effective_priority` = `new_priority`
+  + else if `base_priority` == `effective_priority`
+    + get the highest `effective_priority` from the waiters of each lock in `owned_locks`
+    + set `effective_priority` = the maximum of these priorities and `new_priority`
+  + Set current `base_priority` as `new_priority`  
 
 2. thread_get_priority
-  + Return the **effective_priority**
+  + Return the `effective_priority`
 
 #### Synchronization
 
 1. lock tree
   + One thread can own many locks but can only wait for one lock, thus forming a tree with owner as the parent and owned locks as the children. Only the root of the tree is able to execute.
-  + On waiting for the lock, the thread should donate its **effective_priority** up the tree to ensure the root has the highest priority.
+  + On waiting for the lock, the thread should donate its `effective_priority` up the tree to ensure the root has the highest priority.
   + On releasing the lock, the thread should subtract potentially gained priority, and the child having the highest priority becomes the new root.
 
 2. wait_list
