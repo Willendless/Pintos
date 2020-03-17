@@ -109,6 +109,9 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
+    /* Used by timer_sleep() */
+    int64_t wakeup_time;                /* Time when this thread wakes up. 0 if it is awake. */
+
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -128,6 +131,7 @@ struct thread
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
+
 
 void thread_init (void);
 void thread_start (void);

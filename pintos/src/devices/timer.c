@@ -20,6 +20,9 @@
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
 
+/* Sleep wait queue */
+extern struct list wait_list;
+
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
@@ -37,6 +40,8 @@ timer_init (void)
 {
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
+  // init wait_list
+  list_init (&wait_list);
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -84,6 +89,13 @@ timer_elapsed (int64_t then)
   return timer_ticks () - then;
 }
 
+bool wait_list_less(const struct list_elem *a, const struct list_elem *b, void *aux)
+{
+  struct thread* threadA = list_entry (a, struct thread, elem);
+  struct thread* threadB = list_entry (b, struct thread, elem);
+  return threadA->wakeup_time < threadB->wakeup_time;
+}
+
 /* Sleeps for approximately TICKS timer ticks.  Interrupts must
    be turned on. */
 void
@@ -92,8 +104,18 @@ timer_sleep (int64_t ticks)
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
+  /* modification:
   while (timer_elapsed (start) < ticks)
     thread_yield ();
+  */
+  struct thread* cur = thread_current();
+  int64_t stop = start + ticks;
+  enum intr_level old_level;
+  old_level = intr_disable ();
+  cur->wakeup_time = stop;
+  list_insert_ordered (&wait_list, &(cur->elem), wait_list_less, NULL);
+  thread_block();
+  intr_set_level (old_level);
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be

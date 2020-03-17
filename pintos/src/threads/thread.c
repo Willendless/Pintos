@@ -25,6 +25,9 @@
    that are ready to run but not actually running. */
 static struct list ready_list;
 
+/* Sleep wait queue */
+struct list wait_list;
+
 /* List of all processes.  Processes are added to this list
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
@@ -135,6 +138,21 @@ thread_tick (void)
 #endif
   else
     kernel_ticks++;
+
+  /* Dequeue from wait_list */
+  int64_t curtime = timer_ticks();
+  while (!list_empty (&wait_list)){
+    struct list_elem* e = list_front (&wait_list);
+    struct thread* et = list_entry (e, struct thread, elem);
+    if (curtime >= et->wakeup_time){
+      et->wakeup_time = 0;
+      et->status = THREAD_READY;
+      list_pop_front (&wait_list);
+      list_push_back (&ready_list, &et->elem);
+    } else {
+      break;
+    }
+  }
 
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
