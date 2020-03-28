@@ -91,8 +91,8 @@ timer_elapsed (int64_t then)
 
 bool wait_list_less(const struct list_elem *a, const struct list_elem *b, void *aux)
 {
-  struct thread* threadA = list_entry (a, struct thread, elem);
-  struct thread* threadB = list_entry (b, struct thread, elem);
+  struct thread *threadA = list_entry (a, struct thread, elem);
+  struct thread *threadB = list_entry (b, struct thread, elem);
   return threadA->wakeup_time < threadB->wakeup_time;
 }
 

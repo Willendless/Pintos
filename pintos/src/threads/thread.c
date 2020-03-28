@@ -144,14 +144,12 @@ thread_tick (void)
   while (!list_empty (&wait_list)){
     struct list_elem* e = list_front (&wait_list);
     struct thread* et = list_entry (e, struct thread, elem);
-    if (curtime >= et->wakeup_time){
-      et->wakeup_time = 0;
-      et->status = THREAD_READY;
-      list_pop_front (&wait_list);
-      list_push_back (&ready_list, &et->elem);
-    } else {
+    if (curtime < et->wakeup_time)
       break;
-    }
+    et->wakeup_time = 0;
+    et->status = THREAD_READY;
+    list_pop_front (&wait_list);
+    list_push_back (&ready_list, &et->elem);
   }
 
   /* Enforce preemption. */
