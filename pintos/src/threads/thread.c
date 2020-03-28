@@ -12,6 +12,7 @@
 #include "threads/synch.h"
 #include "threads/vaddr.h"
 #include "threads/malloc.h"
+#include "devices/timer.h"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -22,10 +23,12 @@
 #define THREAD_MAGIC 0xcd6abf4b
 
 /* List of processes in THREAD_READY state, that is, processes
-   that are ready to run but not actually running. */
-static struct list ready_list;
+   that are ready to run but not actually running. 
 
-/* Sleep wait queue */
+   Non-decreasing ready queue (ordered by thread effective priority. */
+struct list ready_list;
+
+/* Non-increasing Sleep wait queue (ordered by thread wake up time) */
 struct list wait_list;
 
 /* List of all processes.  Processes are added to this list
@@ -74,6 +77,8 @@ static void *alloc_frame (struct thread *, size_t size);
 static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
+static int thread_get_base_priority (void);
+static bool priority_greater (const struct list_elem *a, const struct list_elem *b, void *aut);
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
@@ -128,6 +133,7 @@ void
 thread_tick (void)
 {
   struct thread *t = thread_current ();
+  int max_priority = PRI_MIN;
 
   /* Update statistics. */
   if (t == idle_thread)
@@ -143,17 +149,19 @@ thread_tick (void)
   int64_t curtime = timer_ticks();
   while (!list_empty (&wait_list)){
     struct list_elem* e = list_front (&wait_list);
-    struct thread* et = list_entry (e, struct thread, elem);
-    if (curtime < et->wakeup_time)
+    struct thread* t = list_entry (e, struct thread, elem);
+    if (curtime >= t->wakeup_time) {
+      list_pop_front (&wait_list);
+      thread_unblock (t); /* Atomically modify ready list. */
+      max_priority = max_priority > t->effective_priority ?
+                      max_priority : t->effective_priority;
+    } else {
       break;
-    et->wakeup_time = 0;
-    et->status = THREAD_READY;
-    list_pop_front (&wait_list);
-    list_push_back (&ready_list, &et->elem);
+    }
   }
 
   /* Enforce preemption. */
-  if (++thread_ticks >= TIME_SLICE)
+  if (++thread_ticks >= TIME_SLICE || max_priority > thread_get_priority ())
     intr_yield_on_return ();
 }
 
@@ -244,6 +252,11 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
+  /* Strict Priority Schedule. */ 
+  if (thread_get_priority () < t->effective_priority) {
+    thread_yield ();
+  }
+
 #ifdef USERPROG
   if (strcmp (name, "idle")) {
     sema_down (&ws->dead);
@@ -261,9 +274,9 @@ thread_create (const char *name, int priority,
       }
    }
   }
+  /* after child's load finish */
 #endif
 
-  /* after child's load finish */
   return tid;
 }
 
@@ -300,8 +313,9 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_push_back (&ready_list, &t->elem);
   t->status = THREAD_READY;
+  t->wakeup_time = 0;
+  list_insert_ordered (&ready_list, &t->elem, priority_greater, NULL);
   intr_set_level (old_level);
 }
 
@@ -371,7 +385,7 @@ thread_yield (void)
 
   old_level = intr_disable ();
   if (cur != idle_thread)
-    list_push_back (&ready_list, &cur->elem);
+    list_insert_ordered (&ready_list, &cur->elem, priority_greater, NULL);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -398,14 +412,29 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority)
 {
-  thread_current ()->priority = new_priority;
+  thread_current ()->base_priority = new_priority;
+
+  /* Temporary modification. */
+  thread_current ()->effective_priority = new_priority;
+  thread_yield ();
+  // if (!list_empty (&ready_list) &&
+  //   list_entry (list_front (&ready_list), struct thread, elem)->effective_priority
+  //   > new_priority) {
+  //     thread_yield ();
+  //   }
 }
 
 /* Returns the current thread's priority. */
 int
 thread_get_priority (void)
 {
-  return thread_current ()->priority;
+  return thread_current ()->effective_priority;
+}
+
+static int
+thread_get_base_priority (void)
+{
+  return thread_current ()->base_priority;
 }
 
 /* Sets the current thread's nice value to NICE. */
@@ -528,7 +557,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->status = THREAD_BLOCKED;
   strlcpy (t->name, name, sizeof t->name);
   t->stack = (uint8_t *) t + PGSIZE;
-  t->priority = priority;
+  t->base_priority = t->effective_priority = priority;
   t->magic = THREAD_MAGIC;
 #ifdef USERPROG
   /* init new components of struct thread */
@@ -563,8 +592,9 @@ next_thread_to_run (void)
 {
   if (list_empty (&ready_list))
     return idle_thread;
-  else
+  else {
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
+  }
 }
 
 /* Completes a thread switch by activating the new thread's page
@@ -653,3 +683,13 @@ allocate_tid (void)
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+
+
+/* list_insert_ordered() helper function. */
+static bool
+priority_greater (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+{
+  struct thread *ta = list_entry (a, struct thread, elem);
+  struct thread *tb = list_entry (b, struct thread, elem);
+  return ta->effective_priority > tb->effective_priority;
+}
