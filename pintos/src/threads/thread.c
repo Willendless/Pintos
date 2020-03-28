@@ -78,7 +78,6 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 static int thread_get_base_priority (void);
-static bool priority_greater (const struct list_elem *a, const struct list_elem *b, void *aut);
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
@@ -686,7 +685,7 @@ uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
 
 /* list_insert_ordered() helper function. */
-static bool
+bool
 priority_greater (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
 {
   struct thread *ta = list_entry (a, struct thread, elem);
