@@ -1,0 +1,1571 @@
+
+% Default to the notebook output style
+
+    
+
+
+% Inherit from the specified cell style.
+
+
+
+
+    
+\documentclass[11pt]{article}
+
+    
+    
+    \usepackage[T1]{fontenc}
+    % Nicer default font (+ math font) than Computer Modern for most use cases
+    \usepackage{mathpazo}
+
+    % Basic figure setup, for now with no caption control since it's done
+    % automatically by Pandoc (which extracts ![](path) syntax from Markdown).
+    \usepackage{graphicx}
+    % We will generate all images so they have a width \maxwidth. This means
+    % that they will get their normal width if they fit onto the page, but
+    % are scaled down if they would overflow the margins.
+    \makeatletter
+    \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth
+    \else\Gin@nat@width\fi}
+    \makeatother
+    \let\Oldincludegraphics\includegraphics
+    % Set max figure width to be 80% of text width, for now hardcoded.
+    \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=.8\maxwidth]{#1}}
+    % Ensure that by default, figures have no caption (until we provide a
+    % proper Figure object with a Caption API and a way to capture that
+    % in the conversion process - todo).
+    \usepackage{caption}
+    \DeclareCaptionLabelFormat{nolabel}{}
+    \captionsetup{labelformat=nolabel}
+
+    \usepackage{adjustbox} % Used to constrain images to a maximum size 
+    \usepackage{xcolor} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    \usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    \usepackage{textcomp} % defines textquotesingle
+    % Hack from http://tex.stackexchange.com/a/47451/13684:
+    \AtBeginDocument{%
+        \def\PYZsq{\textquotesingle}% Upright quotes in Pygmentized code
+    }
+    \usepackage{upquote} % Upright quotes for verbatim code
+    \usepackage{eurosym} % defines \euro
+    \usepackage[mathletters]{ucs} % Extended unicode (utf-8) support
+    \usepackage[utf8x]{inputenc} % Allow utf-8 characters in the tex document
+    \usepackage{fancyvrb} % verbatim replacement that allows latex
+    \usepackage{grffile} % extends the file name processing of package graphics 
+                         % to support a larger range 
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    \usepackage{longtable} % longtable support required by pandoc >1.10
+    \usepackage{booktabs}  % table support for pandoc > 1.12.2
+    \usepackage[inline]{enumitem} % IRkernel/repr support (it uses the enumerate* environment)
+    \usepackage[normalem]{ulem} % ulem is needed to support strikethroughs (\sout)
+                                % normalem makes italics be italics, not underlines
+    
+
+    
+    
+    % Colors for the hyperref package
+    \definecolor{urlcolor}{rgb}{0,.145,.698}
+    \definecolor{linkcolor}{rgb}{.71,0.21,0.01}
+    \definecolor{citecolor}{rgb}{.12,.54,.11}
+
+    % ANSI colors
+    \definecolor{ansi-black}{HTML}{3E424D}
+    \definecolor{ansi-black-intense}{HTML}{282C36}
+    \definecolor{ansi-red}{HTML}{E75C58}
+    \definecolor{ansi-red-intense}{HTML}{B22B31}
+    \definecolor{ansi-green}{HTML}{00A250}
+    \definecolor{ansi-green-intense}{HTML}{007427}
+    \definecolor{ansi-yellow}{HTML}{DDB62B}
+    \definecolor{ansi-yellow-intense}{HTML}{B27D12}
+    \definecolor{ansi-blue}{HTML}{208FFB}
+    \definecolor{ansi-blue-intense}{HTML}{0065CA}
+    \definecolor{ansi-magenta}{HTML}{D160C4}
+    \definecolor{ansi-magenta-intense}{HTML}{A03196}
+    \definecolor{ansi-cyan}{HTML}{60C6C8}
+    \definecolor{ansi-cyan-intense}{HTML}{258F8F}
+    \definecolor{ansi-white}{HTML}{C5C1B4}
+    \definecolor{ansi-white-intense}{HTML}{A1A6B2}
+
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    \providecommand{\tightlist}{%
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    % Add ',fontsize=\small' for more characters per line
+    \newenvironment{Shaded}{}{}
+    \newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    \newcommand{\RegionMarkerTok}[1]{{#1}}
+    \newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\NormalTok}[1]{{#1}}
+    
+    % Additional commands for more recent versions of Pandoc
+    \newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{{#1}}}
+    \newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{{#1}}}
+    \newcommand{\ImportTok}[1]{{#1}}
+    \newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{{#1}}}}
+    \newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{{#1}}}
+    \newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{{#1}}}
+    \newcommand{\BuiltInTok}[1]{{#1}}
+    \newcommand{\ExtensionTok}[1]{{#1}}
+    \newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{{#1}}}
+    \newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{{#1}}}
+    \newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    
+    
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+    % Math Jax compatability definitions
+    \def\gt{>}
+    \def\lt{<}
+    % Document parameters
+    \title{scheduling}
+    
+    
+    
+
+    % Pygments definitions
+    
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\expandafter\def\csname PY@tok@w\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\expandafter\def\csname PY@tok@c\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.74,0.48,0.00}{##1}}}
+\expandafter\def\csname PY@tok@k\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\expandafter\def\csname PY@tok@o\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ow\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@ne\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.82,0.25,0.23}{##1}}}
+\expandafter\def\csname PY@tok@nv\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@no\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ni\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.60,0.60,0.60}{##1}}}
+\expandafter\def\csname PY@tok@na\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.49,0.56,0.16}{##1}}}
+\expandafter\def\csname PY@tok@nt\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@s\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sd\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@si\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@se\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sr\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@ss\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sx\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@m\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@gh\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gu\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gr\endcsname{\def\PY@tc##1{\textcolor[rgb]{1.00,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ge\endcsname{\let\PY@it=\textit}
+\expandafter\def\csname PY@tok@gs\endcsname{\let\PY@bf=\textbf}
+\expandafter\def\csname PY@tok@gp\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@go\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.53,0.53}{##1}}}
+\expandafter\def\csname PY@tok@gt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\expandafter\def\csname PY@tok@err\endcsname{\def\PY@bc##1{\setlength{\fboxsep}{0pt}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}
+\expandafter\def\csname PY@tok@kc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kd\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kr\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@bp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@fm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@vc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vg\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sa\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@dl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s2\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s1\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@mb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@il\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mo\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ch\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cm\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cpf\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@c1\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cs\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+
+
+    % Exact colors from NB
+    \definecolor{incolor}{rgb}{0.0, 0.0, 0.5}
+    \definecolor{outcolor}{rgb}{0.545, 0.0, 0.0}
+
+
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy 
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=urlcolor,
+      linkcolor=linkcolor,
+      citecolor=citecolor,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    
+    
+
+    \begin{document}
+    
+    
+    \maketitle
+    
+    
+
+    
+    \section{CS 162 Scheduling Lab}\label{cs-162-scheduling-lab}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}190}]:} \PY{k+kn}{from} \PY{n+nn}{collections} \PY{k}{import} \PY{n}{deque}
+          \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+          \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+          \PY{k+kn}{from} \PY{n+nn}{random} \PY{k}{import} \PY{n}{expovariate}
+          \PY{o}{\PYZpc{}}\PY{k}{matplotlib} inline
+          
+          \PY{k+kn}{import} \PY{n+nn}{doctest}
+          \PY{k}{def} \PY{n+nf}{test}\PY{p}{(}\PY{n}{fun}\PY{p}{,} \PY{n}{verbose}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}\PY{p}{:}
+              \PY{n}{doctest}\PY{o}{.}\PY{n}{run\PYZus{}docstring\PYZus{}examples}\PY{p}{(}\PY{n}{fun}\PY{p}{,} \PY{k+kc}{None}\PY{p}{,} \PY{n}{name}\PY{o}{=}\PY{n}{fun}\PY{o}{.}\PY{n+nv+vm}{\PYZus{}\PYZus{}name\PYZus{}\PYZus{}}\PY{p}{,} \PY{n}{verbose}\PY{o}{=}\PY{n}{verbose}\PY{p}{)}
+\end{Verbatim}
+
+
+    \subsection{Task Model}\label{task-model}
+
+Our model of a task ignores what computation and I/O it actually does;
+we are only interested in its scheduling events. This is captured by
+three basic parameters, all of which operate in an abstract time unit,
+say ms:
+
+\begin{itemize}
+\tightlist
+\item
+  arrival - the time at which the task is first initiated
+\item
+  total - total execution time of the task (how long it runs). Generally
+  we don't know this value, although to simulate oracle scheduling we
+  could peek. It determines when the task exits.
+\item
+  burst\_fun - a function that returns the length of the next CPU burst,
+  given its elapsed execution time. This can be viewed as the time to
+  the next syscall. A value of 0 is taken to be run-to-completion. A
+  periodic application simply returns a constant, the number of time
+  units in each burst duration. A stochastic model is obtained by
+  drawing a value according to some distribution.
+\item
+  io\_burst\_fun - a function that returns the length of time the task
+  spends waiting for I/O etc.
+\end{itemize}
+
+The overall workload is described by a stream of such tasks.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}191}]:} \PY{k}{class} \PY{n+nc}{Task}\PY{p}{(}\PY{n+nb}{object}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Model of a program task: }
+          \PY{l+s+sd}{    arrives as a certain time and then alternates CPU and IO bursts of possibly varying length}
+          \PY{l+s+sd}{    till it has executed for a certain amount of CPU time}
+          \PY{l+s+sd}{    \PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{n}{task\PYZus{}number} \PY{o}{=} \PY{l+m+mi}{0}   \PY{c+c1}{\PYZsh{} Unique identifier for each task}
+              
+              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}init\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{arrival}\PY{p}{,} \PY{n}{total}\PY{p}{,} \PY{n}{burst\PYZus{}fun}\PY{p}{,} \PY{n}{io\PYZus{}burst\PYZus{}fun}\PY{p}{)}\PY{p}{:}
+                  \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Create a task with specified arrival, total run time, and functions modeling burst lengths.\PYZdq{}\PYZdq{}\PYZdq{}}
+                  \PY{n}{Task}\PY{o}{.}\PY{n}{task\PYZus{}number} \PY{o}{+}\PY{o}{=} \PY{l+m+mi}{1}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{task} \PY{o}{=} \PY{n}{Task}\PY{o}{.}\PY{n}{task\PYZus{}number}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{arrival\PYZus{}time} \PY{o}{=} \PY{n}{arrival}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{total\PYZus{}run\PYZus{}time} \PY{o}{=} \PY{n}{total}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{cpu\PYZus{}burst} \PY{o}{=} \PY{n}{burst\PYZus{}fun}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{io\PYZus{}burst} \PY{o}{=} \PY{n}{io\PYZus{}burst\PYZus{}fun}
+                  \PY{k}{return} \PY{k+kc}{None}
+              
+              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}repr\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{return} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Task }\PY{l+s+si}{\PYZob{}\PYZcb{}}\PY{l+s+s2}{ arr:}\PY{l+s+si}{\PYZob{}\PYZcb{}}\PY{l+s+s2}{ len:}\PY{l+s+si}{\PYZob{}\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{o}{.}\PY{n}{format}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{task}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{arrival\PYZus{}time}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{total\PYZus{}run\PYZus{}time}\PY{p}{)}
+          
+          \PY{k}{class} \PY{n+nc}{TaskStream}\PY{p}{(}\PY{n+nb}{object}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Stream of tasks arriving as time moves forward\PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}init\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{tasks}\PY{p}{)}\PY{p}{:}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{tasks} \PY{o}{=} \PY{n+nb}{sorted}\PY{p}{(}\PY{n}{tasks}\PY{p}{,} \PY{n}{key}\PY{o}{=}\PY{k}{lambda} \PY{n}{x}\PY{p}{:} \PY{n}{x}\PY{o}{.}\PY{n}{arrival\PYZus{}time}\PY{p}{)}
+              
+              \PY{k}{def} \PY{n+nf}{next\PYZus{}arrival}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{if} \PY{o+ow}{not} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{tasks}\PY{p}{:}
+                      \PY{k}{return} \PY{k+kc}{None}
+                  \PY{k}{return} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{tasks}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{o}{.}\PY{n}{arrival\PYZus{}time}
+              
+              \PY{k}{def} \PY{n+nf}{enter\PYZus{}tasks}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{time}\PY{p}{)}\PY{p}{:}
+                  \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Generate a thread for and remove each tasks arriving upto time. \PYZdq{}\PYZdq{}\PYZdq{}}
+                  \PY{k}{for} \PY{n}{task} \PY{o+ow}{in} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{tasks}\PY{o}{.}\PY{n}{copy}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                      \PY{k}{if} \PY{n}{task}\PY{o}{.}\PY{n}{arrival\PYZus{}time} \PY{o}{\PYZlt{}}\PY{o}{=} \PY{n}{time}\PY{p}{:}
+                          \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{tasks}\PY{o}{.}\PY{n}{remove}\PY{p}{(}\PY{n}{task}\PY{p}{)}
+                          \PY{k}{yield} \PY{n}{Thread}\PY{p}{(}\PY{n}{task}\PY{p}{)}
+          
+              \PY{k}{def} \PY{n+nf}{show}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{for} \PY{n}{t} \PY{o+ow}{in} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{tasks}\PY{p}{:}
+                      \PY{n+nb}{print}\PY{p}{(}\PY{n}{t}\PY{p}{)}
+\end{Verbatim}
+
+
+    \subsection{Thread Model}\label{thread-model}
+
+The execution of the steps of a task is emulated by \texttt{Thread}
+class \texttt{run} method. It is passed the length of the CPU quanta up
+to which may run, with \texttt{q\ ==\ 0} indicating indefinitely, i.e.,
+to the end of its burst or to completion. Based on its internal
+bookkeeping, i.e., where the thread is in the current burst and the task
+time to completion, \texttt{run} determines how long the thread will run
+and returns that value along with a status indicating whether the thread
+continues to run at the end of the quantum ("cpu"), blocked before the
+quantum ("io"), or ran to completion ("done").
+
+One subtlety is that if a tasks is scheduled multiple times to complete
+a burst, the \texttt{burst\_fun} is not used until the task is
+rescheduled after the completes, i.e., it would be returning from the
+syscall.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}192}]:} \PY{k}{class} \PY{n+nc}{Thread}\PY{p}{(}\PY{n+nb}{object}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Model of a running process thread.}
+          \PY{l+s+sd}{    }
+          \PY{l+s+sd}{    Each time a task is run, it executes for 1 or more time units, until it}
+          \PY{l+s+sd}{    \PYZhy{} completes a cpu burst}
+          \PY{l+s+sd}{    \PYZhy{} exhausts a quanta (under preemptive scheduling), or}
+          \PY{l+s+sd}{    \PYZhy{} completes}
+          \PY{l+s+sd}{    \PYZdq{}\PYZdq{}\PYZdq{}}
+              
+              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}init\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{task}\PY{p}{)}\PY{p}{:}
+                  \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Create a thread object with characteristics of modeled task.\PYZdq{}\PYZdq{}\PYZdq{}}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{task} \PY{o}{=} \PY{n}{task}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{elapsed\PYZus{}time} \PY{o}{=} \PY{l+m+mi}{0}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{last\PYZus{}queued} \PY{o}{=} \PY{k+kc}{None}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{wait\PYZus{}time} \PY{o}{=} \PY{l+m+mi}{0}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining\PYZus{}burst} \PY{o}{=} \PY{k+kc}{None}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{wakeup\PYZus{}time} \PY{o}{=} \PY{k+kc}{None}
+              
+              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}repr\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{return} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Thread }\PY{l+s+si}{\PYZob{}\PYZcb{}}\PY{l+s+s2}{ | elapsed: }\PY{l+s+si}{\PYZob{}\PYZcb{}}\PY{l+s+s2}{ wait:}\PY{l+s+si}{\PYZob{}\PYZcb{}}\PY{l+s+s2}{ rbrst:}\PY{l+s+si}{\PYZob{}\PYZcb{}}\PY{l+s+s2}{ wakeup: }\PY{l+s+si}{\PYZob{}\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{o}{.}\PY{n}{format}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{task}\PY{p}{,} 
+                                              \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{elapsed\PYZus{}time}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{wait\PYZus{}time}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining\PYZus{}burst}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{wakeup\PYZus{}time}\PY{p}{)}
+                  
+              \PY{k}{def} \PY{n+nf}{remaining}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{return} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{total\PYZus{}run\PYZus{}time} \PY{o}{\PYZhy{}} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{elapsed\PYZus{}time}
+              
+              \PY{k}{def} \PY{n+nf}{run}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{q}\PY{o}{=}\PY{l+m+mi}{0}\PY{p}{)}\PY{p}{:}
+                  \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Advance the thread for up to q units (q==0 is nonpremptive) till cpu burst completes or done\PYZdq{}\PYZdq{}\PYZdq{}}
+                  \PY{n}{io\PYZus{}time} \PY{o}{=} \PY{k+kc}{None}
+                  \PY{k}{if} \PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining\PYZus{}burst}\PY{p}{)}\PY{p}{:}  \PY{c+c1}{\PYZsh{} Still completing burst}
+                      \PY{k}{if} \PY{n}{q} \PY{o}{\PYZgt{}} \PY{l+m+mi}{0}\PY{p}{:}                 \PY{c+c1}{\PYZsh{} preemptive : run for Q, burst done, or pgm done}
+                          \PY{n}{run\PYZus{}len} \PY{o}{=} \PY{n+nb}{min}\PY{p}{(}\PY{n}{q}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining\PYZus{}burst}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+                      \PY{k}{else}\PY{p}{:}                      \PY{c+c1}{\PYZsh{} non\PYZhy{}preemptive : run till burst or pgm down}
+                          \PY{n}{run\PYZus{}len} \PY{o}{=} \PY{n+nb}{min}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining\PYZus{}burst}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+                      \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining\PYZus{}burst} \PY{o}{\PYZhy{}}\PY{o}{=} \PY{n}{run\PYZus{}len}
+                      \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{elapsed\PYZus{}time} \PY{o}{+}\PY{o}{=} \PY{n}{run\PYZus{}len}
+                      \PY{k}{if} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining\PYZus{}burst}\PY{p}{:}                    \PY{c+c1}{\PYZsh{} Still working on prior CPU burst}
+                          \PY{n}{status} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{cpu}\PY{l+s+s1}{\PYZsq{}}
+                      \PY{k}{else}\PY{p}{:}
+                          \PY{n}{status} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{io}\PY{l+s+s1}{\PYZsq{}}                            \PY{c+c1}{\PYZsh{} completed the burst, start wait}
+                          \PY{n}{io\PYZus{}time} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{io\PYZus{}burst}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{elapsed\PYZus{}time}\PY{p}{)} 
+                  \PY{k}{else}\PY{p}{:}                                                             \PY{c+c1}{\PYZsh{} starting a new burst}
+                      \PY{n}{burst} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{cpu\PYZus{}burst}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{elapsed\PYZus{}time}\PY{p}{)}   
+                      \PY{k}{if} \PY{n}{burst} \PY{o}{==} \PY{l+m+mi}{0} \PY{o+ow}{and} \PY{n}{q} \PY{o}{==} \PY{l+m+mi}{0}\PY{p}{:}                                \PY{c+c1}{\PYZsh{} run till done}
+                          \PY{n}{run\PYZus{}len} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining}\PY{p}{(}\PY{p}{)}           
+                      \PY{k}{elif} \PY{n}{burst} \PY{o}{==} \PY{l+m+mi}{0}\PY{p}{:}                                           \PY{c+c1}{\PYZsh{} run till Q or done}
+                          \PY{n}{run\PYZus{}len} \PY{o}{=} \PY{n+nb}{min}\PY{p}{(}\PY{n}{q}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining}\PY{p}{(}\PY{p}{)}\PY{p}{)}  
+                      \PY{k}{elif} \PY{n}{q} \PY{o}{==} \PY{l+m+mi}{0}\PY{p}{:}                                               \PY{c+c1}{\PYZsh{} run till burst or done}
+                          \PY{n}{run\PYZus{}len} \PY{o}{=} \PY{n+nb}{min}\PY{p}{(}\PY{n}{burst}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+                      \PY{k}{else}\PY{p}{:}                                                         \PY{c+c1}{\PYZsh{} run till Q, burst, or done}
+                          \PY{n}{run\PYZus{}len} \PY{o}{=} \PY{n+nb}{min}\PY{p}{(}\PY{n}{q}\PY{p}{,} \PY{n}{burst}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+          
+                      \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{elapsed\PYZus{}time} \PY{o}{+}\PY{o}{=} \PY{n}{run\PYZus{}len}
+                      \PY{k}{if} \PY{n}{burst} \PY{o}{==} \PY{l+m+mi}{0}\PY{p}{:}
+                          \PY{n}{status} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{cpu}\PY{l+s+s1}{\PYZsq{}}
+                      \PY{k}{elif} \PY{n}{run\PYZus{}len} \PY{o}{\PYZlt{}} \PY{n}{burst}\PY{p}{:}                           \PY{c+c1}{\PYZsh{} Continue CPU burst}
+                          \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining\PYZus{}burst} \PY{o}{=} \PY{n}{burst} \PY{o}{\PYZhy{}} \PY{n}{run\PYZus{}len}
+                          \PY{n}{status} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{cpu}\PY{l+s+s1}{\PYZsq{}}
+                      \PY{k}{else}\PY{p}{:}                                          \PY{c+c1}{\PYZsh{} Completed CPU burst, start I/O wait}
+                          \PY{n}{status} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{io}\PY{l+s+s1}{\PYZsq{}}
+                          \PY{n}{io\PYZus{}time} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{io\PYZus{}burst}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{elapsed\PYZus{}time}\PY{p}{)} 
+          
+                  \PY{k}{if} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{remaining}\PY{p}{(}\PY{p}{)} \PY{o}{\PYZlt{}}\PY{o}{=} \PY{l+m+mi}{0}\PY{p}{:}             \PY{c+c1}{\PYZsh{} override status if thread finished}
+                      \PY{n}{status} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{done}\PY{l+s+s1}{\PYZsq{}}
+                  \PY{k}{return} \PY{n}{run\PYZus{}len}\PY{p}{,} \PY{n}{status}\PY{p}{,} \PY{n}{io\PYZus{}time}
+\end{Verbatim}
+
+
+    \subsection{Processor Model}\label{processor-model}
+
+We also have a very simple model of a process. It moves forward in time,
+either sitting idle or executing a task.
+
+The one complexity is that if tasks arrive or IO completes while a
+thread is being run, they need to be entered into the ready queue. Thus,
+our processor model needs access to the task stream and the enqueue
+method of the scheduler for such starts and restarts.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}193}]:} \PY{k}{class} \PY{n+nc}{Machine}\PY{p}{(}\PY{n+nb}{object}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}}
+          \PY{l+s+sd}{    Simulate machine.  }
+          \PY{l+s+sd}{    Time moves forward, either idling or running \PYZhy{} this is the only property of the machine}
+          \PY{l+s+sd}{    Along the way, it consumes the list of future tasks, builds a log of its actions,}
+          \PY{l+s+sd}{    and records the summary of every thread.}
+          \PY{l+s+sd}{    \PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}init\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{task\PYZus{}stream}\PY{p}{,} \PY{n}{ready}\PY{p}{,} \PY{n}{verbose}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}\PY{p}{:}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time} \PY{o}{=} \PY{l+m+mi}{0}   
+                  
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{log} \PY{o}{=} \PY{p}{[}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{start}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{]}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{threads} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{verbose} \PY{o}{=} \PY{n}{verbose}
+                  
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{io} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{future} \PY{o}{=} \PY{n}{task\PYZus{}stream}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{ready} \PY{o}{=} \PY{n}{ready}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{\PYZus{}arrivals}\PY{p}{(}\PY{p}{)}
+                  
+              \PY{k}{def} \PY{n+nf}{pending}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{return} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{future}\PY{o}{.}\PY{n}{tasks} \PY{o+ow}{or} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{io}
+              
+              \PY{k}{def} \PY{n+nf}{next\PYZus{}start}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Return time of next start or \PYZhy{}1 if none.\PYZdq{}\PYZdq{}\PYZdq{}}
+                  \PY{n}{next\PYZus{}taskstart} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{future}\PY{o}{.}\PY{n}{next\PYZus{}arrival}\PY{p}{(}\PY{p}{)}
+                  \PY{k}{if} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{io} \PY{o+ow}{and} \PY{n}{next\PYZus{}taskstart}\PY{p}{:}
+                      \PY{k}{return} \PY{n+nb}{min}\PY{p}{(}\PY{n}{next\PYZus{}taskstart}\PY{p}{,} \PY{n+nb}{min}\PY{p}{(}\PY{p}{[}\PY{n}{t}\PY{o}{.}\PY{n}{wakeup\PYZus{}time} \PY{k}{for} \PY{n}{t} \PY{o+ow}{in} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{io}\PY{p}{]}\PY{p}{)}\PY{p}{)}
+                  \PY{k}{elif} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{io}\PY{p}{:}
+                      \PY{k}{return} \PY{n+nb}{min}\PY{p}{(}\PY{p}{[}\PY{n}{t}\PY{o}{.}\PY{n}{wakeup\PYZus{}time} \PY{k}{for} \PY{n}{t} \PY{o+ow}{in} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{io}\PY{p}{]}\PY{p}{)}
+                  \PY{k}{else}\PY{p}{:}
+                      \PY{k}{return} \PY{n}{next\PYZus{}taskstart}
+                  
+              \PY{k}{def} \PY{n+nf}{io\PYZus{}wait}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{thread}\PY{p}{,} \PY{n}{wait\PYZus{}time}\PY{p}{)}\PY{p}{:}
+                  \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Put thread completed cpu burst with positive wait time in IO queue till wakeup\PYZdq{}\PYZdq{}\PYZdq{}}
+                  \PY{n}{thread}\PY{o}{.}\PY{n}{wakeup\PYZus{}time} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time} \PY{o}{+} \PY{n}{wait\PYZus{}time}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{io}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{thread}\PY{p}{)}
+                  \PY{k}{if} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{verbose}\PY{p}{:}
+                      \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}0\PYZcb{}}\PY{l+s+s2}{: IO wait for Task }\PY{l+s+si}{\PYZob{}1\PYZcb{}}\PY{l+s+s2}{ for duration }\PY{l+s+si}{\PYZob{}2\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{o}{.}\PY{n}{format}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{,} \PY{n}{thread}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{task}\PY{p}{,} \PY{n}{wait\PYZus{}time}\PY{p}{)}\PY{p}{)}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{log}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{io wait}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{thread}\PY{o}{.}\PY{n}{task}\PY{p}{,} \PY{n}{wait\PYZus{}time}\PY{p}{)}\PY{p}{)}
+          
+              \PY{k}{def} \PY{n+nf}{\PYZus{}arrivals}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{c+c1}{\PYZsh{} Collect new tasks that arrived while this was idling or running}
+                  \PY{k}{for} \PY{n}{thread} \PY{o+ow}{in} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{future}\PY{o}{.}\PY{n}{enter\PYZus{}tasks}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{)}\PY{p}{:}
+                      \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{threads}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{thread}\PY{p}{)}
+                      \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{ready}\PY{o}{.}\PY{n}{arrive}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{thread}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{arrival\PYZus{}time}\PY{p}{)}
+                      \PY{k}{if} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{verbose}\PY{p}{:}
+                          \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}0\PYZcb{}}\PY{l+s+s2}{: Arrival of Task }\PY{l+s+si}{\PYZob{}1\PYZcb{}}\PY{l+s+s2}{ (ready queue length = }\PY{l+s+si}{\PYZob{}2\PYZcb{}}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{.}\PY{n}{format}\PY{p}{(}\PY{n}{thread}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{arrival\PYZus{}time}\PY{p}{,} \PY{n}{thread}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{task}\PY{p}{,} \PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{ready}\PY{p}{)}\PY{p}{)}\PY{p}{)}
+                      \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{log}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{p}{(}\PY{n}{thread}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{arrival\PYZus{}time}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{arrive}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{thread}\PY{o}{.}\PY{n}{task}\PY{p}{,} \PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{ready}\PY{p}{)}\PY{p}{)}\PY{p}{)}
+                      
+                  \PY{c+c1}{\PYZsh{} Collect threads that completed IO}
+                  \PY{k}{for} \PY{n}{thread} \PY{o+ow}{in} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{io}\PY{o}{.}\PY{n}{copy}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                      \PY{k}{if} \PY{n}{thread}\PY{o}{.}\PY{n}{wakeup\PYZus{}time} \PY{o}{\PYZlt{}}\PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{:}
+                          \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{io}\PY{o}{.}\PY{n}{remove}\PY{p}{(}\PY{n}{thread}\PY{p}{)}
+                          \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{ready}\PY{o}{.}\PY{n}{wake}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{thread}\PY{o}{.}\PY{n}{wakeup\PYZus{}time}\PY{p}{)}
+                          \PY{k}{if} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{verbose}\PY{p}{:}
+                              \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}0\PYZcb{}}\PY{l+s+s2}{: Wakeup of Task }\PY{l+s+si}{\PYZob{}1\PYZcb{}}\PY{l+s+s2}{ (ready queue length = }\PY{l+s+si}{\PYZob{}2\PYZcb{}}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{.}\PY{n}{format}\PY{p}{(}\PY{n}{thread}\PY{o}{.}\PY{n}{wakeup\PYZus{}time}\PY{p}{,} \PY{n}{thread}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{task}\PY{p}{,} \PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{ready}\PY{p}{)}\PY{p}{)}\PY{p}{)}
+                          \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{log}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{p}{(}\PY{n}{thread}\PY{o}{.}\PY{n}{wakeup\PYZus{}time}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{wakeup}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{thread}\PY{o}{.}\PY{n}{task}\PY{p}{,} \PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{ready}\PY{p}{)}\PY{p}{)}\PY{p}{)}
+                      
+              
+              \PY{k}{def} \PY{n+nf}{idle}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}}
+          \PY{l+s+sd}{        Idle from current time till next task arrival or IO wait completes.  }
+          \PY{l+s+sd}{        Enter all tasks that arrive or IO complete during idle period ready queue.}
+          \PY{l+s+sd}{        \PYZdq{}\PYZdq{}\PYZdq{}}
+                  \PY{k}{if} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{pending}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                      \PY{n}{idle\PYZus{}time} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{next\PYZus{}start}\PY{p}{(}\PY{p}{)}
+                      \PY{k}{if} \PY{n}{idle\PYZus{}time} \PY{o}{\PYZgt{}} \PY{l+m+mi}{0}\PY{p}{:}
+                          \PY{k}{if} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{verbose}\PY{p}{:}
+                              \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}0\PYZcb{}}\PY{l+s+s2}{: Idle for }\PY{l+s+si}{\PYZob{}1\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{o}{.}\PY{n}{format}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{,} \PY{n}{idle\PYZus{}time} \PY{o}{\PYZhy{}} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{)}\PY{p}{)}
+                          \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{log}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{idle}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{idle\PYZus{}time} \PY{o}{\PYZhy{}} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{)}\PY{p}{)}
+                          \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time} \PY{o}{=} \PY{n}{idle\PYZus{}time}          \PY{c+c1}{\PYZsh{} Processor moves forward in time}
+                          \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{\PYZus{}arrivals}\PY{p}{(}\PY{p}{)}    
+              
+              \PY{k}{def} \PY{n+nf}{run}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{run\PYZus{}time}\PY{p}{,} \PY{n}{thread}\PY{p}{)}\PY{p}{:}
+                  \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Advance machine time for run\PYZus{}time.  }
+          \PY{l+s+sd}{        Enter new tasks and IO completes during run into ready queue}
+          \PY{l+s+sd}{        \PYZdq{}\PYZdq{}\PYZdq{}}
+                  \PY{k}{if} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{verbose}\PY{p}{:}
+                      \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}0\PYZcb{}}\PY{l+s+s2}{: Run Task }\PY{l+s+si}{\PYZob{}1\PYZcb{}}\PY{l+s+s2}{ for duration }\PY{l+s+si}{\PYZob{}2\PYZcb{}}\PY{l+s+s2}{ (ready queue length = }\PY{l+s+si}{\PYZob{}3\PYZcb{}}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{.}\PY{n}{format}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{,} \PY{n}{thread}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{task}\PY{p}{,} \PY{n}{run\PYZus{}time}\PY{p}{,} \PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{ready}\PY{p}{)}\PY{p}{)}\PY{p}{)}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{log}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{run}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{thread}\PY{o}{.}\PY{n}{task}\PY{p}{,} \PY{n}{run\PYZus{}time}\PY{p}{,} \PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{ready}\PY{p}{)}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{ready}\PY{o}{.}\PY{n}{weight}\PY{p}{(}\PY{p}{)}\PY{p}{)}\PY{p}{)}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time} \PY{o}{+}\PY{o}{=} \PY{n}{run\PYZus{}time}           \PY{c+c1}{\PYZsh{} All we do to run is move time forward}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{\PYZus{}arrivals}\PY{p}{(}\PY{p}{)}
+                      
+              \PY{k}{def} \PY{n+nf}{stop}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{if} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{verbose}\PY{p}{:}
+                      \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}0\PYZcb{}}\PY{l+s+s2}{: Stop}\PY{l+s+s2}{\PYZdq{}}\PY{o}{.}\PY{n}{format}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{)}\PY{p}{)}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{log}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{time}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{stop}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+
+
+    \section{Example Schedulers}\label{example-schedulers}
+
+Each scheduler consists of a loop over the workload and a data structure
+that implements its policy. The schedule presents the thread with its
+quanta to the thread model to determine how long it retains the CPU and
+the status at the end of that time, i.e. CPU, I/O, Done.
+
+Based on that determination, it allows the machine to advance to that
+point in time. Along the way, tasks may arrive or threads may complete
+their I/O wait, so the machine will invoke methods in the scheduler
+appropriately.
+
+    \subsection{FCFS and Round Robin}\label{fcfs-and-round-robin}
+
+Both are built on a simple FIFO queue, the latter with preemption using
+fixed quanta. The enqueue and dequeue operation take a simulated time as
+which it occurs so that they can update observational data carried in
+the task structure for analysis and reporting.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}194}]:} \PY{k}{class} \PY{n+nc}{FIFOQueue}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} FIFO Queue of tasks to be scheduled \PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}init\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue} \PY{o}{=} \PY{n}{deque}\PY{p}{(}\PY{p}{)}
+              
+              \PY{k}{def} \PY{n+nf}{enqueue}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{thread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}\PY{p}{:}
+                  \PY{n}{thread}\PY{o}{.}\PY{n}{last\PYZus{}queued} \PY{o}{=} \PY{n}{at\PYZus{}time}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{o}{.}\PY{n}{appendleft}\PY{p}{(}\PY{n}{thread}\PY{p}{)}
+                  
+              \PY{k}{def} \PY{n+nf}{dequeue}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}\PY{p}{:}
+                  \PY{n}{thread} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{o}{.}\PY{n}{pop}\PY{p}{(}\PY{p}{)}
+                  \PY{n}{thread}\PY{o}{.}\PY{n}{wait\PYZus{}time} \PY{o}{+}\PY{o}{=} \PY{n}{at\PYZus{}time} \PY{o}{\PYZhy{}} \PY{n}{thread}\PY{o}{.}\PY{n}{last\PYZus{}queued}
+                  \PY{k}{return} \PY{n}{thread}
+              
+              \PY{k}{def} \PY{n+nf}{arrive}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{thread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}\PY{p}{:}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{enqueue}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}
+              
+              \PY{k}{def} \PY{n+nf}{wake}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{thread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}\PY{p}{:}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{enqueue}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}
+              
+              \PY{k}{def} \PY{n+nf}{empty}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{return} \PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{p}{)} \PY{o}{==} \PY{l+m+mi}{0}
+              
+              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}len\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{return} \PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{p}{)}
+              
+              \PY{k}{def} \PY{n+nf}{weight}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{return} \PY{n+nb}{sum}\PY{p}{(}\PY{p}{[}\PY{n}{x}\PY{o}{.}\PY{n}{task}\PY{o}{.}\PY{n}{total\PYZus{}run\PYZus{}time} \PY{o}{\PYZhy{}} \PY{n}{x}\PY{o}{.}\PY{n}{elapsed\PYZus{}time} \PY{k}{for} \PY{n}{x} \PY{o+ow}{in} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{p}{]}\PY{p}{)}
+              
+              \PY{k}{def} \PY{n+nf}{show}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{for} \PY{n}{e} \PY{o+ow}{in} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{p}{:}
+                      \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{ }\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{e}\PY{p}{)}
+                      
+          \PY{k}{def} \PY{n+nf}{scheduler}\PY{p}{(}\PY{n}{tasks}\PY{p}{,} \PY{n}{q}\PY{p}{,} \PY{n}{queue\PYZus{}class}\PY{p}{,} \PY{n}{verbose}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}\PY{p}{:}
+              \PY{n}{remaining} \PY{o}{=} \PY{n}{TaskStream}\PY{p}{(}\PY{n}{tasks}\PY{p}{)}
+              \PY{n}{ready} \PY{o}{=} \PY{n}{queue\PYZus{}class}\PY{p}{(}\PY{p}{)}
+              \PY{n}{cpu} \PY{o}{=} \PY{n}{Machine}\PY{p}{(}\PY{n}{remaining}\PY{p}{,} \PY{n}{ready}\PY{p}{,} \PY{n}{verbose}\PY{p}{)}
+          
+              \PY{k}{while} \PY{o+ow}{not} \PY{n}{ready}\PY{o}{.}\PY{n}{empty}\PY{p}{(}\PY{p}{)} \PY{o+ow}{or} \PY{n}{cpu}\PY{o}{.}\PY{n}{next\PYZus{}start}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{if} \PY{n}{ready}\PY{o}{.}\PY{n}{empty}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                      \PY{n}{cpu}\PY{o}{.}\PY{n}{idle}\PY{p}{(}\PY{p}{)}
+                  \PY{k}{else}\PY{p}{:}     
+                      \PY{n}{thread} \PY{o}{=} \PY{n}{ready}\PY{o}{.}\PY{n}{dequeue}\PY{p}{(}\PY{n}{cpu}\PY{o}{.}\PY{n}{time}\PY{p}{)}
+                      \PY{n}{run\PYZus{}time}\PY{p}{,} \PY{n}{status}\PY{p}{,} \PY{n}{io\PYZus{}time} \PY{o}{=} \PY{n}{thread}\PY{o}{.}\PY{n}{run}\PY{p}{(}\PY{n}{q}\PY{p}{)}
+                      \PY{n}{cpu}\PY{o}{.}\PY{n}{run}\PY{p}{(}\PY{n}{run\PYZus{}time}\PY{p}{,} \PY{n}{thread}\PY{p}{)}
+                      \PY{k}{if} \PY{n}{status} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{io}\PY{l+s+s1}{\PYZsq{}} \PY{o+ow}{and} \PY{n}{io\PYZus{}time} \PY{o}{\PYZgt{}} \PY{l+m+mi}{0}\PY{p}{:}
+                          \PY{n}{cpu}\PY{o}{.}\PY{n}{io\PYZus{}wait}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{io\PYZus{}time}\PY{p}{)}
+                      \PY{k}{elif} \PY{n}{status} \PY{o}{!=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{done}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}
+                          \PY{n}{ready}\PY{o}{.}\PY{n}{enqueue}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{cpu}\PY{o}{.}\PY{n}{time}\PY{p}{)}    
+              \PY{n}{cpu}\PY{o}{.}\PY{n}{stop}\PY{p}{(}\PY{p}{)}
+              \PY{k}{return} \PY{n}{cpu}
+              
+          \PY{k}{def} \PY{n+nf}{round\PYZus{}robin}\PY{p}{(}\PY{n}{tasks}\PY{p}{,} \PY{n}{q}\PY{p}{,} \PY{n}{verbose}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}\PY{p}{:}
+              \PY{k}{return} \PY{n}{scheduler}\PY{p}{(}\PY{n}{tasks}\PY{p}{,} \PY{n}{q}\PY{p}{,} \PY{n}{FIFOQueue}\PY{p}{,} \PY{n}{verbose}\PY{p}{)}
+              
+          \PY{k}{def} \PY{n+nf}{fcfs}\PY{p}{(}\PY{n}{tasks}\PY{p}{,} \PY{n}{verbose}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}\PY{p}{:}
+              \PY{k}{return} \PY{n}{round\PYZus{}robin}\PY{p}{(}\PY{n}{tasks}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,} \PY{n}{verbose}\PY{p}{)}
+\end{Verbatim}
+
+
+    \subsection{Helper Functions for Burst
+Modeling}\label{helper-functions-for-burst-modeling}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}195}]:} \PY{c+c1}{\PYZsh{} Burst functions and factories}
+          
+          \PY{k}{def} \PY{n+nf}{indefinite}\PY{p}{(}\PY{n}{run\PYZus{}time}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Run till done\PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{return} \PY{l+m+mi}{0}\PY{p}{;}
+          
+          \PY{k}{def} \PY{n+nf}{nowait}\PY{p}{(}\PY{n}{run\PYZus{}time}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}No I/O wait.\PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{return} \PY{l+m+mi}{0}\PY{p}{;}
+          
+          \PY{k}{def} \PY{n+nf}{make\PYZus{}periodic}\PY{p}{(}\PY{n}{duration}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Bursts of constant duration for run or io, i.e., periodic.\PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{return} \PY{k}{lambda} \PY{n}{rt}\PY{p}{:} \PY{n}{duration}
+          
+          \PY{k}{def} \PY{n+nf}{make\PYZus{}exponential}\PY{p}{(}\PY{n}{mean\PYZus{}duration}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Bursts of duration drawn from an exponential distribution of specified mean.\PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{return} \PY{k}{lambda} \PY{n}{rt}\PY{p}{:} \PY{n+nb}{round}\PY{p}{(}\PY{n}{expovariate}\PY{p}{(}\PY{l+m+mf}{1.0}\PY{o}{/}\PY{n}{mean\PYZus{}duration}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}196}]:} \PY{k}{def} \PY{n+nf}{analyze}\PY{p}{(}\PY{n}{thrds}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}For now just print it out\PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}\PYZhy{}\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+              \PY{k}{for} \PY{n}{t} \PY{o+ow}{in} \PY{n}{thrds}\PY{p}{:}
+                  \PY{n+nb}{print}\PY{p}{(}\PY{n}{t}\PY{p}{)}
+\end{Verbatim}
+
+
+    \subsection{Study Cases}\label{study-cases}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}197}]:} \PY{n}{Task}\PY{o}{.}\PY{n}{task\PYZus{}number} \PY{o}{=} \PY{l+m+mi}{0}
+          
+          \PY{n}{workload1} \PY{o}{=} \PY{p}{[}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{4}\PY{p}{,} \PY{n}{indefinite}\PY{p}{,} \PY{n}{nowait}\PY{p}{)}\PY{p}{,}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{,} \PY{l+m+mi}{7}\PY{p}{,} \PY{n}{indefinite}\PY{p}{,} \PY{n}{nowait}\PY{p}{)}\PY{p}{,}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{2}\PY{p}{,} \PY{l+m+mi}{2}\PY{p}{,} \PY{n}{make\PYZus{}periodic}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{,} \PY{n}{make\PYZus{}periodic}\PY{p}{(}\PY{l+m+mi}{4}\PY{p}{)}\PY{p}{)}\PY{p}{,}     \PY{c+c1}{\PYZsh{} run 1, IO 4, run 1}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{3}\PY{p}{,} \PY{l+m+mi}{3}\PY{p}{,} \PY{n}{make\PYZus{}periodic}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{,} \PY{n}{make\PYZus{}periodic}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{)}      \PY{c+c1}{\PYZsh{} run 1, IO 1, run 1, IO 1, run 1}
+          \PY{p}{]}
+          
+          \PY{c+c1}{\PYZsh{} Idle two short, 1 long, four short}
+          \PY{n}{workload2} \PY{o}{=} \PY{p}{[}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{10}\PY{p}{,}  \PY{l+m+mi}{30}\PY{p}{,} \PY{n}{indefinite}\PY{p}{,} \PY{n}{nowait}\PY{p}{)}\PY{p}{,}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{20}\PY{p}{,}  \PY{l+m+mi}{30}\PY{p}{,} \PY{n}{indefinite}\PY{p}{,} \PY{n}{nowait}\PY{p}{)}\PY{p}{,}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{30}\PY{p}{,} \PY{l+m+mi}{100}\PY{p}{,} \PY{n}{indefinite}\PY{p}{,} \PY{n}{nowait}\PY{p}{)}\PY{p}{,}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{40}\PY{p}{,}  \PY{l+m+mi}{30}\PY{p}{,} \PY{n}{indefinite}\PY{p}{,} \PY{n}{nowait}\PY{p}{)}\PY{p}{,}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{60}\PY{p}{,}  \PY{l+m+mi}{30}\PY{p}{,} \PY{n}{indefinite}\PY{p}{,} \PY{n}{nowait}\PY{p}{)}\PY{p}{,}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{80}\PY{p}{,}  \PY{l+m+mi}{30}\PY{p}{,} \PY{n}{indefinite}\PY{p}{,} \PY{n}{nowait}\PY{p}{)}\PY{p}{,}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{100}\PY{p}{,}  \PY{l+m+mi}{30}\PY{p}{,} \PY{n}{indefinite}\PY{p}{,} \PY{n}{nowait}\PY{p}{)}
+          \PY{p}{]}
+          
+          \PY{n}{workload3} \PY{o}{=} \PY{p}{[}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{4}\PY{p}{,} \PY{n}{make\PYZus{}periodic}\PY{p}{(}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{,} \PY{n}{make\PYZus{}periodic}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{)}\PY{p}{,}     \PY{c+c1}{\PYZsh{} run 2, IO 1, run 2}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{,} \PY{l+m+mi}{7}\PY{p}{,} \PY{n}{indefinite}\PY{p}{,} \PY{n}{nowait}\PY{p}{)}\PY{p}{,}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{2}\PY{p}{,} \PY{l+m+mi}{2}\PY{p}{,} \PY{n}{make\PYZus{}periodic}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{,} \PY{n}{make\PYZus{}periodic}\PY{p}{(}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{)}\PY{p}{,}     \PY{c+c1}{\PYZsh{} run 1, IO 2, run 1}
+              \PY{n}{Task}\PY{p}{(}\PY{l+m+mi}{3}\PY{p}{,} \PY{l+m+mi}{3}\PY{p}{,} \PY{n}{make\PYZus{}periodic}\PY{p}{(}\PY{l+m+mi}{6}\PY{p}{)}\PY{p}{,} \PY{n}{make\PYZus{}periodic}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{)}      \PY{c+c1}{\PYZsh{} run 1, IO 1, run 1, IO 1, run 1}
+          \PY{p}{]}
+\end{Verbatim}
+
+
+    \subsection{Example Testing Code}\label{example-testing-code}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}198}]:} \PY{k}{def} \PY{n+nf}{test\PYZus{}fcfs\PYZus{}workload1}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Test FCFS on workload1}
+          \PY{l+s+sd}{    }
+          \PY{l+s+sd}{    \PYZgt{}\PYZgt{}\PYZgt{} \PYZus{} = fcfs(workload1, True)}
+          \PY{l+s+sd}{    0: Arrival of Task 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    0: Run Task 1 for duration 4 (ready queue length = 0)}
+          \PY{l+s+sd}{    1: Arrival of Task 2 (ready queue length = 1)}
+          \PY{l+s+sd}{    2: Arrival of Task 3 (ready queue length = 2)}
+          \PY{l+s+sd}{    3: Arrival of Task 4 (ready queue length = 3)}
+          \PY{l+s+sd}{    4: Run Task 2 for duration 7 (ready queue length = 2)}
+          \PY{l+s+sd}{    11: Run Task 3 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    12: IO wait for Task 3 for duration 4}
+          \PY{l+s+sd}{    12: Run Task 4 for duration 1 (ready queue length = 0)}
+          \PY{l+s+sd}{    13: IO wait for Task 4 for duration 1}
+          \PY{l+s+sd}{    13: Idle for 1}
+          \PY{l+s+sd}{    14: Wakeup of Task 4 (ready queue length = 1)}
+          \PY{l+s+sd}{    14: Run Task 4 for duration 1 (ready queue length = 0)}
+          \PY{l+s+sd}{    15: IO wait for Task 4 for duration 1}
+          \PY{l+s+sd}{    15: Idle for 1}
+          \PY{l+s+sd}{    16: Wakeup of Task 3 (ready queue length = 1)}
+          \PY{l+s+sd}{    16: Wakeup of Task 4 (ready queue length = 2)}
+          \PY{l+s+sd}{    16: Run Task 3 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    17: Run Task 4 for duration 1 (ready queue length = 0)}
+          \PY{l+s+sd}{    18: Stop}
+          \PY{l+s+sd}{    \PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{return}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}199}]:} \PY{n}{test}\PY{p}{(}\PY{n}{test\PYZus{}fcfs\PYZus{}workload1}\PY{p}{,} \PY{k+kc}{True}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Finding tests in test\_fcfs\_workload1
+Trying:
+    \_ = fcfs(workload1, True)
+Expecting:
+    0: Arrival of Task 1 (ready queue length = 1)
+    0: Run Task 1 for duration 4 (ready queue length = 0)
+    1: Arrival of Task 2 (ready queue length = 1)
+    2: Arrival of Task 3 (ready queue length = 2)
+    3: Arrival of Task 4 (ready queue length = 3)
+    4: Run Task 2 for duration 7 (ready queue length = 2)
+    11: Run Task 3 for duration 1 (ready queue length = 1)
+    12: IO wait for Task 3 for duration 4
+    12: Run Task 4 for duration 1 (ready queue length = 0)
+    13: IO wait for Task 4 for duration 1
+    13: Idle for 1
+    14: Wakeup of Task 4 (ready queue length = 1)
+    14: Run Task 4 for duration 1 (ready queue length = 0)
+    15: IO wait for Task 4 for duration 1
+    15: Idle for 1
+    16: Wakeup of Task 3 (ready queue length = 1)
+    16: Wakeup of Task 4 (ready queue length = 2)
+    16: Run Task 3 for duration 1 (ready queue length = 1)
+    17: Run Task 4 for duration 1 (ready queue length = 0)
+    18: Stop
+ok
+
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}200}]:} \PY{k}{def} \PY{n+nf}{test\PYZus{}round\PYZus{}robin}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Test round robin on workload1}
+          \PY{l+s+sd}{    }
+          \PY{l+s+sd}{    \PYZgt{}\PYZgt{}\PYZgt{} \PYZus{} = round\PYZus{}robin(workload1, 2, True)}
+          \PY{l+s+sd}{    0: Arrival of Task 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    0: Run Task 1 for duration 2 (ready queue length = 0)}
+          \PY{l+s+sd}{    1: Arrival of Task 2 (ready queue length = 1)}
+          \PY{l+s+sd}{    2: Arrival of Task 3 (ready queue length = 2)}
+          \PY{l+s+sd}{    2: Run Task 2 for duration 2 (ready queue length = 2)}
+          \PY{l+s+sd}{    3: Arrival of Task 4 (ready queue length = 3)}
+          \PY{l+s+sd}{    4: Run Task 3 for duration 1 (ready queue length = 3)}
+          \PY{l+s+sd}{    5: IO wait for Task 3 for duration 4}
+          \PY{l+s+sd}{    5: Run Task 1 for duration 2 (ready queue length = 2)}
+          \PY{l+s+sd}{    7: Run Task 4 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    8: IO wait for Task 4 for duration 1}
+          \PY{l+s+sd}{    8: Run Task 2 for duration 2 (ready queue length = 0)}
+          \PY{l+s+sd}{    9: Wakeup of Task 3 (ready queue length = 1)}
+          \PY{l+s+sd}{    9: Wakeup of Task 4 (ready queue length = 2)}
+          \PY{l+s+sd}{    10: Run Task 3 for duration 1 (ready queue length = 2)}
+          \PY{l+s+sd}{    11: Run Task 4 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    12: IO wait for Task 4 for duration 1}
+          \PY{l+s+sd}{    12: Run Task 2 for duration 2 (ready queue length = 0)}
+          \PY{l+s+sd}{    13: Wakeup of Task 4 (ready queue length = 1)}
+          \PY{l+s+sd}{    14: Run Task 4 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    15: Run Task 2 for duration 1 (ready queue length = 0)}
+          \PY{l+s+sd}{    16: Stop}
+          \PY{l+s+sd}{    \PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{return}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}201}]:} \PY{n}{test}\PY{p}{(}\PY{n}{test\PYZus{}round\PYZus{}robin}\PY{p}{,} \PY{k+kc}{True}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Finding tests in test\_round\_robin
+Trying:
+    \_ = round\_robin(workload1, 2, True)
+Expecting:
+    0: Arrival of Task 1 (ready queue length = 1)
+    0: Run Task 1 for duration 2 (ready queue length = 0)
+    1: Arrival of Task 2 (ready queue length = 1)
+    2: Arrival of Task 3 (ready queue length = 2)
+    2: Run Task 2 for duration 2 (ready queue length = 2)
+    3: Arrival of Task 4 (ready queue length = 3)
+    4: Run Task 3 for duration 1 (ready queue length = 3)
+    5: IO wait for Task 3 for duration 4
+    5: Run Task 1 for duration 2 (ready queue length = 2)
+    7: Run Task 4 for duration 1 (ready queue length = 1)
+    8: IO wait for Task 4 for duration 1
+    8: Run Task 2 for duration 2 (ready queue length = 0)
+    9: Wakeup of Task 3 (ready queue length = 1)
+    9: Wakeup of Task 4 (ready queue length = 2)
+    10: Run Task 3 for duration 1 (ready queue length = 2)
+    11: Run Task 4 for duration 1 (ready queue length = 1)
+    12: IO wait for Task 4 for duration 1
+    12: Run Task 2 for duration 2 (ready queue length = 0)
+    13: Wakeup of Task 4 (ready queue length = 1)
+    14: Run Task 4 for duration 1 (ready queue length = 1)
+    15: Run Task 2 for duration 1 (ready queue length = 0)
+    16: Stop
+ok
+
+    \end{Verbatim}
+
+    \subsection{Exploring Behavior on CPU-only
+Workloads}\label{exploring-behavior-on-cpu-only-workloads}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}202}]:} \PY{c+c1}{\PYZsh{} FCFS exhibits convoy effect}
+          
+          \PY{n}{fcfs\PYZus{}cpu} \PY{o}{=} \PY{n}{fcfs}\PY{p}{(}\PY{n}{workload2}\PY{p}{,} \PY{k+kc}{True}\PY{p}{)}
+          \PY{n}{analyze}\PY{p}{(}\PY{n}{fcfs\PYZus{}cpu}\PY{o}{.}\PY{n}{threads}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+0: Idle for 10
+10: Arrival of Task 5 (ready queue length = 1)
+10: Run Task 5 for duration 30 (ready queue length = 0)
+20: Arrival of Task 6 (ready queue length = 1)
+30: Arrival of Task 7 (ready queue length = 2)
+40: Arrival of Task 8 (ready queue length = 3)
+40: Run Task 6 for duration 30 (ready queue length = 2)
+60: Arrival of Task 9 (ready queue length = 3)
+70: Run Task 7 for duration 100 (ready queue length = 2)
+80: Arrival of Task 10 (ready queue length = 3)
+100: Arrival of Task 11 (ready queue length = 4)
+170: Run Task 8 for duration 30 (ready queue length = 3)
+200: Run Task 9 for duration 30 (ready queue length = 2)
+230: Run Task 10 for duration 30 (ready queue length = 1)
+260: Run Task 11 for duration 30 (ready queue length = 0)
+290: Stop
+---
+Thread Task 5 arr:10 len:30 | elapsed: 30 wait:0 rbrst:None wakeup: None
+Thread Task 6 arr:20 len:30 | elapsed: 30 wait:20 rbrst:None wakeup: None
+Thread Task 7 arr:30 len:100 | elapsed: 100 wait:40 rbrst:None wakeup: None
+Thread Task 8 arr:40 len:30 | elapsed: 30 wait:130 rbrst:None wakeup: None
+Thread Task 9 arr:60 len:30 | elapsed: 30 wait:140 rbrst:None wakeup: None
+Thread Task 10 arr:80 len:30 | elapsed: 30 wait:150 rbrst:None wakeup: None
+Thread Task 11 arr:100 len:30 | elapsed: 30 wait:160 rbrst:None wakeup: None
+
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}203}]:} \PY{c+c1}{\PYZsh{} Round robin services the later arriving short ones, more evenly distributing wait}
+          
+          \PY{n}{rr40\PYZus{}CPU} \PY{o}{=} \PY{n}{round\PYZus{}robin}\PY{p}{(}\PY{n}{workload2}\PY{p}{,} \PY{l+m+mi}{40}\PY{p}{,} \PY{k+kc}{True}\PY{p}{)}
+          \PY{n}{analyze}\PY{p}{(}\PY{n}{rr40\PYZus{}CPU}\PY{o}{.}\PY{n}{threads}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+0: Idle for 10
+10: Arrival of Task 5 (ready queue length = 1)
+10: Run Task 5 for duration 30 (ready queue length = 0)
+20: Arrival of Task 6 (ready queue length = 1)
+30: Arrival of Task 7 (ready queue length = 2)
+40: Arrival of Task 8 (ready queue length = 3)
+40: Run Task 6 for duration 30 (ready queue length = 2)
+60: Arrival of Task 9 (ready queue length = 3)
+70: Run Task 7 for duration 40 (ready queue length = 2)
+80: Arrival of Task 10 (ready queue length = 3)
+100: Arrival of Task 11 (ready queue length = 4)
+110: Run Task 8 for duration 30 (ready queue length = 4)
+140: Run Task 9 for duration 30 (ready queue length = 3)
+170: Run Task 10 for duration 30 (ready queue length = 2)
+200: Run Task 11 for duration 30 (ready queue length = 1)
+230: Run Task 7 for duration 40 (ready queue length = 0)
+270: Run Task 7 for duration 20 (ready queue length = 0)
+290: Stop
+---
+Thread Task 5 arr:10 len:30 | elapsed: 30 wait:0 rbrst:None wakeup: None
+Thread Task 6 arr:20 len:30 | elapsed: 30 wait:20 rbrst:None wakeup: None
+Thread Task 7 arr:30 len:100 | elapsed: 100 wait:160 rbrst:None wakeup: None
+Thread Task 8 arr:40 len:30 | elapsed: 30 wait:70 rbrst:None wakeup: None
+Thread Task 9 arr:60 len:30 | elapsed: 30 wait:80 rbrst:None wakeup: None
+Thread Task 10 arr:80 len:30 | elapsed: 30 wait:90 rbrst:None wakeup: None
+Thread Task 11 arr:100 len:30 | elapsed: 30 wait:100 rbrst:None wakeup: None
+
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}204}]:} \PY{c+c1}{\PYZsh{} Round robin with short quanta causes the interactive jobs to wait}
+          
+          \PY{n}{rr20\PYZus{}cpu} \PY{o}{=} \PY{n}{round\PYZus{}robin}\PY{p}{(}\PY{n}{workload2}\PY{p}{,} \PY{l+m+mi}{20}\PY{p}{,} \PY{k+kc}{True}\PY{p}{)}
+          \PY{n}{analyze}\PY{p}{(}\PY{n}{rr20\PYZus{}cpu}\PY{o}{.}\PY{n}{threads}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+0: Idle for 10
+10: Arrival of Task 5 (ready queue length = 1)
+10: Run Task 5 for duration 20 (ready queue length = 0)
+20: Arrival of Task 6 (ready queue length = 1)
+30: Arrival of Task 7 (ready queue length = 2)
+30: Run Task 6 for duration 20 (ready queue length = 2)
+40: Arrival of Task 8 (ready queue length = 3)
+50: Run Task 7 for duration 20 (ready queue length = 3)
+60: Arrival of Task 9 (ready queue length = 4)
+70: Run Task 5 for duration 10 (ready queue length = 4)
+80: Arrival of Task 10 (ready queue length = 5)
+80: Run Task 8 for duration 20 (ready queue length = 4)
+100: Arrival of Task 11 (ready queue length = 5)
+100: Run Task 6 for duration 10 (ready queue length = 5)
+110: Run Task 9 for duration 20 (ready queue length = 4)
+130: Run Task 7 for duration 20 (ready queue length = 4)
+150: Run Task 10 for duration 20 (ready queue length = 4)
+170: Run Task 11 for duration 20 (ready queue length = 4)
+190: Run Task 8 for duration 10 (ready queue length = 4)
+200: Run Task 9 for duration 10 (ready queue length = 3)
+210: Run Task 7 for duration 20 (ready queue length = 2)
+230: Run Task 10 for duration 10 (ready queue length = 2)
+240: Run Task 11 for duration 10 (ready queue length = 1)
+250: Run Task 7 for duration 20 (ready queue length = 0)
+270: Run Task 7 for duration 20 (ready queue length = 0)
+290: Stop
+---
+Thread Task 5 arr:10 len:30 | elapsed: 30 wait:40 rbrst:None wakeup: None
+Thread Task 6 arr:20 len:30 | elapsed: 30 wait:60 rbrst:None wakeup: None
+Thread Task 7 arr:30 len:100 | elapsed: 100 wait:160 rbrst:None wakeup: None
+Thread Task 8 arr:40 len:30 | elapsed: 30 wait:130 rbrst:None wakeup: None
+Thread Task 9 arr:60 len:30 | elapsed: 30 wait:120 rbrst:None wakeup: None
+Thread Task 10 arr:80 len:30 | elapsed: 30 wait:130 rbrst:None wakeup: None
+Thread Task 11 arr:100 len:30 | elapsed: 30 wait:120 rbrst:None wakeup: None
+
+    \end{Verbatim}
+
+    \section{Problem 1: Scheduling Simulator
+Implementation}\label{problem-1-scheduling-simulator-implementation}
+
+    Complete the implementations of the SRTF and MLFQ schedulers below.
+
+    \subsubsection{Shortest Remaining Time
+First}\label{shortest-remaining-time-first}
+
+Use our oracle knowledge of the future of each job to select the one
+that will finish soonest. This inherits from the generic queue providing
+a specialized dequeue.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}205}]:} \PY{k}{class} \PY{n+nc}{SRTFQueue}\PY{p}{(}\PY{n}{FIFOQueue}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Shortest remaining time first queue \PYZhy{} with perfect knowledge \PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{def} \PY{n+nf}{dequeue}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}\PY{p}{:}
+                  \PY{n}{srtThread} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{o}{.}\PY{n}{pop}\PY{p}{(}\PY{p}{)}
+                  \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{p}{)}\PY{p}{)}\PY{p}{:}
+                      \PY{n}{nextThread} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{o}{.}\PY{n}{pop}\PY{p}{(}\PY{p}{)}
+          \PY{c+c1}{\PYZsh{}             print(\PYZdq{}Task: \PYZob{}0\PYZcb{}, Time remaining: \PYZob{}1\PYZcb{};\PYZdq{}.format(srtThread.task.task, srtThread.remaining()))}
+          \PY{c+c1}{\PYZsh{}             print(\PYZdq{}vs\PYZdq{})}
+          \PY{c+c1}{\PYZsh{}             print(\PYZdq{}Task: \PYZob{}0\PYZcb{}, Time remaining: \PYZob{}1\PYZcb{};\PYZdq{}.format(nextThread.task.task, nextThread.remaining()))}
+                      \PY{k}{if} \PY{n}{srtThread}\PY{o}{.}\PY{n}{remaining}\PY{p}{(}\PY{p}{)} \PY{o}{\PYZgt{}}\PY{o}{=} \PY{n}{nextThread}\PY{o}{.}\PY{n}{remaining}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                          \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{enqueue}\PY{p}{(}\PY{n}{srtThread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}
+                          \PY{n}{srtThread} \PY{o}{=} \PY{n}{nextThread}
+                      \PY{k}{else}\PY{p}{:}
+                          \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{enqueue}\PY{p}{(}\PY{n}{nextThread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}
+                  \PY{n}{srtThread}\PY{o}{.}\PY{n}{wait\PYZus{}time} \PY{o}{+}\PY{o}{=} \PY{n}{at\PYZus{}time} \PY{o}{\PYZhy{}} \PY{n}{srtThread}\PY{o}{.}\PY{n}{last\PYZus{}queued}
+                  \PY{k}{return} \PY{n}{srtThread}
+                  
+          \PY{k}{def} \PY{n+nf}{srtf}\PY{p}{(}\PY{n}{tasks}\PY{p}{,} \PY{n}{q}\PY{p}{,} \PY{n}{verbose}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}\PY{p}{:}
+              \PY{k}{return} \PY{n}{scheduler}\PY{p}{(}\PY{n}{tasks}\PY{p}{,} \PY{n}{q}\PY{p}{,} \PY{n}{SRTFQueue}\PY{p}{,} \PY{n}{verbose}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}206}]:} \PY{k}{def} \PY{n+nf}{test\PYZus{}srtf1}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Test SRTF}
+          \PY{l+s+sd}{    }
+          \PY{l+s+sd}{    \PYZgt{}\PYZgt{}\PYZgt{} \PYZus{} = srtf(workload1, 2, True)}
+          \PY{l+s+sd}{    0: Arrival of Task 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    0: Run Task 1 for duration 2 (ready queue length = 0)}
+          \PY{l+s+sd}{    1: Arrival of Task 2 (ready queue length = 1)}
+          \PY{l+s+sd}{    2: Arrival of Task 3 (ready queue length = 2)}
+          \PY{l+s+sd}{    2: Run Task 1 for duration 2 (ready queue length = 2)}
+          \PY{l+s+sd}{    3: Arrival of Task 4 (ready queue length = 3)}
+          \PY{l+s+sd}{    4: Run Task 3 for duration 1 (ready queue length = 2)}
+          \PY{l+s+sd}{    5: IO wait for Task 3 for duration 4}
+          \PY{l+s+sd}{    5: Run Task 4 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    6: IO wait for Task 4 for duration 1}
+          \PY{l+s+sd}{    6: Run Task 2 for duration 2 (ready queue length = 0)}
+          \PY{l+s+sd}{    7: Wakeup of Task 4 (ready queue length = 1)}
+          \PY{l+s+sd}{    8: Run Task 4 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    9: Wakeup of Task 3 (ready queue length = 2)}
+          \PY{l+s+sd}{    9: IO wait for Task 4 for duration 1}
+          \PY{l+s+sd}{    9: Run Task 3 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    10: Wakeup of Task 4 (ready queue length = 2)}
+          \PY{l+s+sd}{    10: Run Task 4 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    11: Run Task 2 for duration 2 (ready queue length = 0)}
+          \PY{l+s+sd}{    13: Run Task 2 for duration 2 (ready queue length = 0)}
+          \PY{l+s+sd}{    15: Run Task 2 for duration 1 (ready queue length = 0)}
+          \PY{l+s+sd}{    16: Stop}
+          \PY{l+s+sd}{    \PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{return}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}207}]:} \PY{c+c1}{\PYZsh{} If you implemented SRTF correctly, this test should pass}
+          \PY{n}{test}\PY{p}{(}\PY{n}{test\PYZus{}srtf1}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}208}]:} \PY{c+c1}{\PYZsh{} Shortest Remaining Time first sets aside the long one and services all the short ones.}
+          
+          \PY{k}{def} \PY{n+nf}{test\PYZus{}srtf2}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Test SRTF}
+          \PY{l+s+sd}{    }
+          \PY{l+s+sd}{    \PYZgt{}\PYZgt{}\PYZgt{} \PYZus{} = srtf(workload2, 5, True)}
+          \PY{l+s+sd}{    0: Idle for 10}
+          \PY{l+s+sd}{    10: Arrival of Task 5 (ready queue length = 1)}
+          \PY{l+s+sd}{    10: Run Task 5 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    15: Run Task 5 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    20: Arrival of Task 6 (ready queue length = 1)}
+          \PY{l+s+sd}{    20: Run Task 5 for duration 5 (ready queue length = 1)}
+          \PY{l+s+sd}{    25: Run Task 5 for duration 5 (ready queue length = 1)}
+          \PY{l+s+sd}{    30: Arrival of Task 7 (ready queue length = 2)}
+          \PY{l+s+sd}{    30: Run Task 5 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    35: Run Task 5 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    40: Arrival of Task 8 (ready queue length = 3)}
+          \PY{l+s+sd}{    40: Run Task 8 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    45: Run Task 8 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    50: Run Task 8 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    55: Run Task 8 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    60: Arrival of Task 9 (ready queue length = 3)}
+          \PY{l+s+sd}{    60: Run Task 8 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    65: Run Task 8 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    70: Run Task 9 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    75: Run Task 9 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    80: Arrival of Task 10 (ready queue length = 3)}
+          \PY{l+s+sd}{    80: Run Task 9 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    85: Run Task 9 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    90: Run Task 9 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    95: Run Task 9 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    100: Arrival of Task 11 (ready queue length = 4)}
+          \PY{l+s+sd}{    100: Run Task 11 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    105: Run Task 11 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    110: Run Task 11 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    115: Run Task 11 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    120: Run Task 11 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    125: Run Task 11 for duration 5 (ready queue length = 3)}
+          \PY{l+s+sd}{    130: Run Task 10 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    135: Run Task 10 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    140: Run Task 10 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    145: Run Task 10 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    150: Run Task 10 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    155: Run Task 10 for duration 5 (ready queue length = 2)}
+          \PY{l+s+sd}{    160: Run Task 6 for duration 5 (ready queue length = 1)}
+          \PY{l+s+sd}{    165: Run Task 6 for duration 5 (ready queue length = 1)}
+          \PY{l+s+sd}{    170: Run Task 6 for duration 5 (ready queue length = 1)}
+          \PY{l+s+sd}{    175: Run Task 6 for duration 5 (ready queue length = 1)}
+          \PY{l+s+sd}{    180: Run Task 6 for duration 5 (ready queue length = 1)}
+          \PY{l+s+sd}{    185: Run Task 6 for duration 5 (ready queue length = 1)}
+          \PY{l+s+sd}{    190: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    195: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    200: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    205: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    210: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    215: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    220: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    225: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    230: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    235: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    240: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    245: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    250: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    255: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    260: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    265: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    270: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    275: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    280: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    285: Run Task 7 for duration 5 (ready queue length = 0)}
+          \PY{l+s+sd}{    290: Stop}
+          \PY{l+s+sd}{    \PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{return}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}209}]:} \PY{c+c1}{\PYZsh{} If you implemented SRTF correctly, this test should pass}
+          \PY{n}{test}\PY{p}{(}\PY{n}{test\PYZus{}srtf2}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}210}]:} \PY{c+c1}{\PYZsh{} Copy\PYZhy{}and\PYZhy{}paste the output of this cell as your answer to Problem 1(a).}
+          \PY{n}{\PYZus{}} \PY{o}{=} \PY{n}{srtf}\PY{p}{(}\PY{n}{workload3}\PY{p}{,} \PY{l+m+mi}{2}\PY{p}{,} \PY{k+kc}{True}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+0: Arrival of Task 12 (ready queue length = 1)
+0: Run Task 12 for duration 2 (ready queue length = 0)
+1: Arrival of Task 13 (ready queue length = 1)
+2: Arrival of Task 14 (ready queue length = 2)
+2: IO wait for Task 12 for duration 1
+2: Run Task 14 for duration 1 (ready queue length = 1)
+3: Arrival of Task 15 (ready queue length = 2)
+3: Wakeup of Task 12 (ready queue length = 3)
+3: IO wait for Task 14 for duration 2
+3: Run Task 12 for duration 2 (ready queue length = 2)
+5: Wakeup of Task 14 (ready queue length = 3)
+5: Run Task 14 for duration 1 (ready queue length = 2)
+6: Run Task 15 for duration 2 (ready queue length = 1)
+8: Run Task 15 for duration 1 (ready queue length = 1)
+9: Run Task 13 for duration 2 (ready queue length = 0)
+11: Run Task 13 for duration 2 (ready queue length = 0)
+13: Run Task 13 for duration 2 (ready queue length = 0)
+15: Run Task 13 for duration 1 (ready queue length = 0)
+16: Stop
+
+    \end{Verbatim}
+
+    \subsubsection{MLFQ with Two Levels}\label{mlfq-with-two-levels}
+
+A foreground interactive queue with a small quantum and a background
+CPU-bound queue with a large quantum.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}211}]:} \PY{k}{class} \PY{n+nc}{TwoLevelFeedbackQueue}\PY{p}{(}\PY{n+nb}{object}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Dual Queue of tasks to be scheduled \PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}init\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{q\PYZus{}int}\PY{p}{,} \PY{n}{q\PYZus{}cpu}\PY{p}{)}\PY{p}{:}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue} \PY{o}{=} \PY{n}{deque}\PY{p}{(}\PY{p}{)}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{q} \PY{o}{=} \PY{n}{q\PYZus{}int}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{q\PYZus{}cpu} \PY{o}{=} \PY{n}{q\PYZus{}cpu}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{cpu\PYZus{}queue} \PY{o}{=} \PY{n}{deque}\PY{p}{(}\PY{p}{)}
+              
+              \PY{k}{def} \PY{n+nf}{enqueue}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{thread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}\PY{p}{:}
+                  \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Insert into interactive\PYZdq{}\PYZdq{}\PYZdq{}}
+                  \PY{n}{thread}\PY{o}{.}\PY{n}{last\PYZus{}queued} \PY{o}{=} \PY{n}{at\PYZus{}time}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{o}{.}\PY{n}{appendleft}\PY{p}{(}\PY{n}{thread}\PY{p}{)}
+                  
+              \PY{k}{def} \PY{n+nf}{enqueue\PYZus{}cpu}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{thread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}\PY{p}{:}
+                  \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Insert into non\PYZhy{}interactive\PYZdq{}\PYZdq{}\PYZdq{}}
+                  \PY{n}{thread}\PY{o}{.}\PY{n}{last\PYZus{}queued} \PY{o}{=} \PY{n}{at\PYZus{}time}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{cpu\PYZus{}queue}\PY{o}{.}\PY{n}{appendleft}\PY{p}{(}\PY{n}{thread}\PY{p}{)}
+                  
+              \PY{k}{def} \PY{n+nf}{dequeue}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{if} \PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{p}{)} \PY{o}{\PYZgt{}} \PY{l+m+mi}{0}\PY{p}{:}
+                      \PY{n}{thread} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{o}{.}\PY{n}{pop}\PY{p}{(}\PY{p}{)}\PY{p}{;}
+                      \PY{n}{thread}\PY{o}{.}\PY{n}{wait\PYZus{}time} \PY{o}{+}\PY{o}{=} \PY{n}{at\PYZus{}time} \PY{o}{\PYZhy{}} \PY{n}{thread}\PY{o}{.}\PY{n}{last\PYZus{}queued}
+                      \PY{k}{return} \PY{n}{thread}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{q}
+                  \PY{k}{else}\PY{p}{:}
+                      \PY{n}{thread} \PY{o}{=} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{cpu\PYZus{}queue}\PY{o}{.}\PY{n}{pop}\PY{p}{(}\PY{p}{)}\PY{p}{;}
+                      \PY{n}{thread}\PY{o}{.}\PY{n}{wait\PYZus{}time} \PY{o}{+}\PY{o}{=} \PY{n}{at\PYZus{}time} \PY{o}{\PYZhy{}} \PY{n}{thread}\PY{o}{.}\PY{n}{last\PYZus{}queued}
+                      \PY{k}{return} \PY{n}{thread}\PY{p}{,} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{q\PYZus{}cpu}
+              
+              \PY{k}{def} \PY{n+nf}{arrive}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{thread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}\PY{p}{:}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{enqueue}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}
+              
+              \PY{k}{def} \PY{n+nf}{wake}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{thread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}\PY{p}{:}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{enqueue}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{at\PYZus{}time}\PY{p}{)}
+              
+              \PY{k}{def} \PY{n+nf}{empty}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{return} \PY{o+ow}{not} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue} \PY{o+ow}{and} \PY{o+ow}{not} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{cpu\PYZus{}queue}
+              
+              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}len\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{return} \PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{p}{)} \PY{o}{+} \PY{n+nb}{len}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{cpu\PYZus{}queue}\PY{p}{)}
+              
+              \PY{k}{def} \PY{n+nf}{weight}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{return} \PY{n+nb}{sum}\PY{p}{(}\PY{p}{[}\PY{n}{t}\PY{o}{.}\PY{n}{remaining}\PY{p}{(}\PY{p}{)} \PY{k}{for} \PY{n}{t} \PY{o+ow}{in} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{queue}\PY{p}{]}\PY{p}{)} \PY{o}{+} \PY{n+nb}{sum}\PY{p}{(}\PY{p}{[}\PY{n}{t}\PY{o}{.}\PY{n}{remaining}\PY{p}{(}\PY{p}{)} \PY{k}{for} \PY{n}{t} \PY{o+ow}{in} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{cpu\PYZus{}queue}\PY{p}{]}\PY{p}{)}
+          
+          
+          \PY{k}{def} \PY{n+nf}{mlfq2}\PY{p}{(}\PY{n}{tasks}\PY{p}{,} \PY{n}{q1}\PY{p}{,} \PY{n}{q2}\PY{p}{,} \PY{n}{verbose}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}\PY{p}{:}
+              \PY{n}{remaining} \PY{o}{=} \PY{n}{TaskStream}\PY{p}{(}\PY{n}{tasks}\PY{p}{)}
+              \PY{n}{ready} \PY{o}{=} \PY{n}{TwoLevelFeedbackQueue}\PY{p}{(}\PY{n}{q1}\PY{p}{,} \PY{n}{q2}\PY{p}{)}
+              \PY{n}{cpu} \PY{o}{=} \PY{n}{Machine}\PY{p}{(}\PY{n}{remaining}\PY{p}{,} \PY{n}{ready}\PY{p}{,} \PY{n}{verbose}\PY{p}{)}
+          
+              \PY{k}{while} \PY{o+ow}{not} \PY{n}{ready}\PY{o}{.}\PY{n}{empty}\PY{p}{(}\PY{p}{)} \PY{o+ow}{or} \PY{n}{cpu}\PY{o}{.}\PY{n}{next\PYZus{}start}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                  \PY{k}{if} \PY{n}{ready}\PY{o}{.}\PY{n}{empty}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                      \PY{n}{cpu}\PY{o}{.}\PY{n}{idle}\PY{p}{(}\PY{p}{)}
+                  \PY{k}{else}\PY{p}{:}     
+                      \PY{n}{thread}\PY{p}{,} \PY{n}{quanta} \PY{o}{=} \PY{n}{ready}\PY{o}{.}\PY{n}{dequeue}\PY{p}{(}\PY{n}{cpu}\PY{o}{.}\PY{n}{time}\PY{p}{)}
+                      \PY{n}{run\PYZus{}time}\PY{p}{,} \PY{n}{status}\PY{p}{,} \PY{n}{io\PYZus{}time} \PY{o}{=} \PY{n}{thread}\PY{o}{.}\PY{n}{run}\PY{p}{(}\PY{n}{quanta}\PY{p}{)}
+                      \PY{n}{cpu}\PY{o}{.}\PY{n}{run}\PY{p}{(}\PY{n}{run\PYZus{}time}\PY{p}{,} \PY{n}{thread}\PY{p}{)}
+                      
+                      \PY{k}{if} \PY{n}{status} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{io}\PY{l+s+s1}{\PYZsq{}} \PY{o+ow}{and} \PY{n}{io\PYZus{}time} \PY{o}{\PYZgt{}} \PY{l+m+mi}{0}\PY{p}{:}
+                          \PY{n}{cpu}\PY{o}{.}\PY{n}{io\PYZus{}wait}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{io\PYZus{}time}\PY{p}{)}
+                      \PY{k}{elif} \PY{n}{status} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{cpu}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}
+                          \PY{n}{ready}\PY{o}{.}\PY{n}{enqueue\PYZus{}cpu}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{cpu}\PY{o}{.}\PY{n}{time}\PY{p}{)}
+                      \PY{k}{elif} \PY{n}{status} \PY{o}{!=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{done}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}                
+                          \PY{n}{ready}\PY{o}{.}\PY{n}{enqueue}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{cpu}\PY{o}{.}\PY{n}{time}\PY{p}{)}      
+              \PY{n}{cpu}\PY{o}{.}\PY{n}{stop}\PY{p}{(}\PY{p}{)}
+              \PY{k}{return} \PY{n}{cpu}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}212}]:} \PY{k}{def} \PY{n+nf}{test\PYZus{}mlfq21}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Test MLFQ2}
+          \PY{l+s+sd}{    }
+          \PY{l+s+sd}{    \PYZgt{}\PYZgt{}\PYZgt{} \PYZus{} = mlfq2(workload1, 2, 4, True)}
+          \PY{l+s+sd}{    0: Arrival of Task 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    0: Run Task 1 for duration 2 (ready queue length = 0)}
+          \PY{l+s+sd}{    1: Arrival of Task 2 (ready queue length = 1)}
+          \PY{l+s+sd}{    2: Arrival of Task 3 (ready queue length = 2)}
+          \PY{l+s+sd}{    2: Run Task 2 for duration 2 (ready queue length = 2)}
+          \PY{l+s+sd}{    3: Arrival of Task 4 (ready queue length = 3)}
+          \PY{l+s+sd}{    4: Run Task 3 for duration 1 (ready queue length = 3)}
+          \PY{l+s+sd}{    5: IO wait for Task 3 for duration 4}
+          \PY{l+s+sd}{    5: Run Task 4 for duration 1 (ready queue length = 2)}
+          \PY{l+s+sd}{    6: IO wait for Task 4 for duration 1}
+          \PY{l+s+sd}{    6: Run Task 1 for duration 2 (ready queue length = 1)}
+          \PY{l+s+sd}{    7: Wakeup of Task 4 (ready queue length = 2)}
+          \PY{l+s+sd}{    8: Run Task 4 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    9: Wakeup of Task 3 (ready queue length = 2)}
+          \PY{l+s+sd}{    9: IO wait for Task 4 for duration 1}
+          \PY{l+s+sd}{    9: Run Task 3 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    10: Wakeup of Task 4 (ready queue length = 2)}
+          \PY{l+s+sd}{    10: Run Task 4 for duration 1 (ready queue length = 1)}
+          \PY{l+s+sd}{    11: Run Task 2 for duration 4 (ready queue length = 0)}
+          \PY{l+s+sd}{    15: Run Task 2 for duration 1 (ready queue length = 0)}
+          \PY{l+s+sd}{    16: Stop}
+          \PY{l+s+sd}{    \PYZdq{}\PYZdq{}\PYZdq{}}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}213}]:} \PY{c+c1}{\PYZsh{} If you implemented MLFQ2 correctly, this test should pass}
+          \PY{n}{test}\PY{p}{(}\PY{n}{test\PYZus{}mlfq21}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}214}]:} \PY{c+c1}{\PYZsh{} Dual queue recognizes the long one after 1st quantum and moves to the long queue}
+          \PY{c+c1}{\PYZsh{} No oracle information is needed.}
+          
+          \PY{k}{def} \PY{n+nf}{test\PYZus{}mlfq22}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{} Test MLFQ2}
+          \PY{l+s+sd}{    }
+          \PY{l+s+sd}{    \PYZgt{}\PYZgt{}\PYZgt{} \PYZus{} = mlfq2(workload2, 50, 200, True)}
+          \PY{l+s+sd}{    0: Idle for 10}
+          \PY{l+s+sd}{    10: Arrival of Task 5 (ready queue length = 1)}
+          \PY{l+s+sd}{    10: Run Task 5 for duration 30 (ready queue length = 0)}
+          \PY{l+s+sd}{    20: Arrival of Task 6 (ready queue length = 1)}
+          \PY{l+s+sd}{    30: Arrival of Task 7 (ready queue length = 2)}
+          \PY{l+s+sd}{    40: Arrival of Task 8 (ready queue length = 3)}
+          \PY{l+s+sd}{    40: Run Task 6 for duration 30 (ready queue length = 2)}
+          \PY{l+s+sd}{    60: Arrival of Task 9 (ready queue length = 3)}
+          \PY{l+s+sd}{    70: Run Task 7 for duration 50 (ready queue length = 2)}
+          \PY{l+s+sd}{    80: Arrival of Task 10 (ready queue length = 3)}
+          \PY{l+s+sd}{    100: Arrival of Task 11 (ready queue length = 4)}
+          \PY{l+s+sd}{    120: Run Task 8 for duration 30 (ready queue length = 4)}
+          \PY{l+s+sd}{    150: Run Task 9 for duration 30 (ready queue length = 3)}
+          \PY{l+s+sd}{    180: Run Task 10 for duration 30 (ready queue length = 2)}
+          \PY{l+s+sd}{    210: Run Task 11 for duration 30 (ready queue length = 1)}
+          \PY{l+s+sd}{    240: Run Task 7 for duration 50 (ready queue length = 0)}
+          \PY{l+s+sd}{    290: Stop}
+          \PY{l+s+sd}{    \PYZdq{}\PYZdq{}\PYZdq{}}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}215}]:} \PY{c+c1}{\PYZsh{} If you implemented MLFQ2 correctly, this test should pass}
+          \PY{n}{test}\PY{p}{(}\PY{n}{test\PYZus{}mlfq22}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}216}]:} \PY{c+c1}{\PYZsh{} Copy\PYZhy{}and\PYZhy{}paste the output of this cell as your answer to Problem 1(b).}
+          \PY{n}{\PYZus{}} \PY{o}{=} \PY{n}{mlfq2}\PY{p}{(}\PY{n}{workload3}\PY{p}{,} \PY{l+m+mi}{2}\PY{p}{,} \PY{l+m+mi}{4}\PY{p}{,} \PY{k+kc}{True}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+0: Arrival of Task 12 (ready queue length = 1)
+0: Run Task 12 for duration 2 (ready queue length = 0)
+1: Arrival of Task 13 (ready queue length = 1)
+2: Arrival of Task 14 (ready queue length = 2)
+2: IO wait for Task 12 for duration 1
+2: Run Task 13 for duration 2 (ready queue length = 1)
+3: Arrival of Task 15 (ready queue length = 2)
+3: Wakeup of Task 12 (ready queue length = 3)
+4: Run Task 14 for duration 1 (ready queue length = 3)
+5: IO wait for Task 14 for duration 2
+5: Run Task 15 for duration 2 (ready queue length = 2)
+7: Wakeup of Task 14 (ready queue length = 3)
+7: Run Task 12 for duration 2 (ready queue length = 3)
+9: Run Task 14 for duration 1 (ready queue length = 2)
+10: Run Task 13 for duration 4 (ready queue length = 1)
+14: Run Task 15 for duration 1 (ready queue length = 1)
+15: Run Task 13 for duration 1 (ready queue length = 0)
+16: Stop
+
+    \end{Verbatim}
+
+    \section{Problem 2: Approaching 100\%
+Utilization}\label{problem-2-approaching-100-utilization}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}217}]:} \PY{k}{def} \PY{n+nf}{make\PYZus{}exp\PYZus{}arrivals}\PY{p}{(}\PY{n}{arrival\PYZus{}rate}\PY{p}{,} \PY{n}{service\PYZus{}time}\PY{p}{,} \PY{n}{n}\PY{p}{)}\PY{p}{:}
+              \PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Make n tasks of exponential distributed arrival intervals and lengths\PYZdq{}\PYZdq{}\PYZdq{}}
+              \PY{n}{arrivals} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{cumsum}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{random}\PY{o}{.}\PY{n}{exponential}\PY{p}{(}\PY{l+m+mi}{1} \PY{o}{/} \PY{n}{arrival\PYZus{}rate}\PY{p}{,} \PY{n}{n}\PY{p}{)}\PY{p}{)}
+              \PY{n}{lengths} \PY{o}{=} \PY{p}{[}\PY{n}{service\PYZus{}time} \PY{k}{for} \PY{n}{\PYZus{}} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{n}{n}\PY{p}{)}\PY{p}{]}
+              \PY{k}{return} \PY{p}{[}\PY{n}{Task}\PY{p}{(}\PY{n}{arr}\PY{p}{,} \PY{n}{run}\PY{p}{,} \PY{n}{indefinite}\PY{p}{,} \PY{n}{nowait}\PY{p}{)} \PY{k}{for} \PY{n}{arr}\PY{p}{,} \PY{n}{run} \PY{o+ow}{in} \PY{n+nb}{zip}\PY{p}{(}\PY{n}{arrivals}\PY{p}{,} \PY{n}{lengths}\PY{p}{)}\PY{p}{]}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}218}]:} \PY{c+c1}{\PYZsh{} These functions may (or may not) be useful for you to implement}
+          
+          \PY{k}{def} \PY{n+nf}{cpuUtilization}\PY{p}{(}\PY{n}{cpulog}\PY{p}{)}\PY{p}{:}
+              \PY{c+c1}{\PYZsh{} Given the Machine\PYZsq{}s log (list of tuples), computes the average CPU utilization}
+              \PY{n}{run\PYZus{}time} \PY{o}{=} \PY{l+m+mf}{0.0}
+              \PY{n}{total\PYZus{}time} \PY{o}{=} \PY{l+m+mf}{0.0}
+              \PY{k}{for} \PY{n}{log} \PY{o+ow}{in} \PY{n}{cpulog}\PY{p}{:}
+                  \PY{k}{if} \PY{n}{log}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{run}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}
+                      \PY{n}{run\PYZus{}time} \PY{o}{+}\PY{o}{=} \PY{n}{log}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}\PY{o}{.}\PY{n}{total\PYZus{}run\PYZus{}time}
+                      \PY{n}{total\PYZus{}time} \PY{o}{+}\PY{o}{=} \PY{n}{log}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}\PY{o}{.}\PY{n}{total\PYZus{}run\PYZus{}time}
+                  \PY{k}{elif} \PY{n}{log}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{idle}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}
+                      \PY{n}{total\PYZus{}time} \PY{o}{+}\PY{o}{=} \PY{n}{log}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}
+              \PY{k}{return} \PY{n}{run\PYZus{}time} \PY{o}{/} \PY{n}{total\PYZus{}time}
+          
+          \PY{k}{def} \PY{n+nf}{responseTimes}\PY{p}{(}\PY{n}{cpulog}\PY{p}{)}\PY{p}{:}
+              \PY{c+c1}{\PYZsh{} Given the Machine\PYZsq{}s log, computes the response time of each task, and returns a list containing them}
+              \PY{k}{return} \PY{p}{[}\PY{n}{log}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]} \PY{o}{\PYZhy{}} \PY{n}{log}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}\PY{o}{.}\PY{n}{arrival\PYZus{}time} \PY{k}{for} \PY{n}{log} \PY{o+ow}{in} \PY{n}{cpulog} \PY{k}{if} \PY{n}{log}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{run}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}219}]:} \PY{c+c1}{\PYZsh{} l and lmbdas are \PYZdq{}recommended values\PYZdq{} that you can change if desired}
+          \PY{n}{l} \PY{o}{=} \PY{l+m+mi}{10}
+          \PY{n}{lmbdas} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{p}{(}\PY{l+m+mf}{0.2}\PY{p}{,} \PY{l+m+mf}{0.5}\PY{p}{,} \PY{l+m+mf}{0.7}\PY{p}{,} \PY{l+m+mf}{0.8}\PY{p}{,} \PY{l+m+mf}{0.9}\PY{p}{,} \PY{l+m+mf}{0.93}\PY{p}{,} \PY{l+m+mf}{0.95}\PY{p}{,} \PY{l+m+mf}{0.97}\PY{p}{,} \PY{l+m+mf}{0.99}\PY{p}{)}\PY{p}{)} \PY{o}{/} \PY{n}{l}
+          
+          \PY{c+c1}{\PYZsh{} Decrease this when developing in case it takes too long}
+          \PY{n}{TRIALS} \PY{o}{=} \PY{l+m+mi}{100}
+          
+          \PY{n}{response\PYZus{}time\PYZus{}medians} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+          \PY{n}{response\PYZus{}time\PYZus{}95th\PYZus{}percentiles} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+          \PY{n}{utilizations} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+          \PY{k}{for} \PY{n}{lmbda} \PY{o+ow}{in} \PY{n}{lmbdas}\PY{p}{:}
+              \PY{n}{trial\PYZus{}utilizations} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+              \PY{n}{trial\PYZus{}medians} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+              \PY{n}{trial\PYZus{}95ths} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+              
+              \PY{k}{for} \PY{n}{\PYZus{}} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{n}{TRIALS}\PY{p}{)}\PY{p}{:}
+                  \PY{n}{tasks} \PY{o}{=} \PY{n}{make\PYZus{}exp\PYZus{}arrivals}\PY{p}{(}\PY{n}{lmbda}\PY{p}{,} \PY{n}{l}\PY{p}{,} \PY{n}{TRIALS}\PY{p}{)}
+                  \PY{n}{stream} \PY{o}{=} \PY{n}{TaskStream}\PY{p}{(}\PY{n}{tasks}\PY{p}{)}
+                  \PY{n}{ready} \PY{o}{=} \PY{n}{FIFOQueue}\PY{p}{(}\PY{p}{)}
+                  \PY{n}{cpu} \PY{o}{=} \PY{n}{Machine}\PY{p}{(}\PY{n}{stream}\PY{p}{,} \PY{n}{ready}\PY{p}{,} \PY{k+kc}{False}\PY{p}{)}
+          
+                  \PY{k}{while} \PY{o+ow}{not} \PY{n}{ready}\PY{o}{.}\PY{n}{empty}\PY{p}{(}\PY{p}{)} \PY{o+ow}{or} \PY{n}{cpu}\PY{o}{.}\PY{n}{next\PYZus{}start}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                      \PY{k}{if} \PY{n}{ready}\PY{o}{.}\PY{n}{empty}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                          \PY{n}{cpu}\PY{o}{.}\PY{n}{idle}\PY{p}{(}\PY{p}{)}
+                      \PY{k}{else}\PY{p}{:}     
+                          \PY{n}{thread} \PY{o}{=} \PY{n}{ready}\PY{o}{.}\PY{n}{dequeue}\PY{p}{(}\PY{n}{cpu}\PY{o}{.}\PY{n}{time}\PY{p}{)}
+                          \PY{n}{run\PYZus{}time}\PY{p}{,} \PY{n}{status}\PY{p}{,} \PY{n}{io\PYZus{}time} \PY{o}{=} \PY{n}{thread}\PY{o}{.}\PY{n}{run}\PY{p}{(}\PY{n}{l}\PY{p}{)}
+                          \PY{n}{cpu}\PY{o}{.}\PY{n}{run}\PY{p}{(}\PY{n}{run\PYZus{}time}\PY{p}{,} \PY{n}{thread}\PY{p}{)}
+                          \PY{k}{if} \PY{n}{status} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{io}\PY{l+s+s1}{\PYZsq{}} \PY{o+ow}{and} \PY{n}{io\PYZus{}time} \PY{o}{\PYZgt{}} \PY{l+m+mi}{0}\PY{p}{:}
+                              \PY{n}{cpu}\PY{o}{.}\PY{n}{io\PYZus{}wait}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{io\PYZus{}time}\PY{p}{)}
+                          \PY{k}{elif} \PY{n}{status} \PY{o}{!=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{done}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}
+                              \PY{n}{ready}\PY{o}{.}\PY{n}{enqueue}\PY{p}{(}\PY{n}{thread}\PY{p}{,} \PY{n}{cpu}\PY{o}{.}\PY{n}{time}\PY{p}{)}
+                  
+          \PY{c+c1}{\PYZsh{}         print(test)}
+                  \PY{n}{trial\PYZus{}utilizations}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{cpuUtilization}\PY{p}{(}\PY{n}{cpu}\PY{o}{.}\PY{n}{log}\PY{p}{)}\PY{p}{)}
+                  \PY{n}{responses} \PY{o}{=} \PY{n}{responseTimes}\PY{p}{(}\PY{n}{cpu}\PY{o}{.}\PY{n}{log}\PY{p}{)}
+                  \PY{n}{trial\PYZus{}medians}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{median}\PY{p}{(}\PY{n}{responses}\PY{p}{)}\PY{p}{)}
+                  \PY{n}{trial\PYZus{}95ths}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{percentile}\PY{p}{(}\PY{n}{responses}\PY{p}{,} \PY{l+m+mi}{95}\PY{p}{)}\PY{p}{)}
+              
+              \PY{n}{response\PYZus{}time\PYZus{}medians}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{n}{trial\PYZus{}medians}\PY{p}{)}\PY{p}{)}
+              \PY{n}{response\PYZus{}time\PYZus{}95th\PYZus{}percentiles}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{n}{trial\PYZus{}95ths}\PY{p}{)}\PY{p}{)}
+              \PY{n}{utilizations}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{n}{trial\PYZus{}utilizations}\PY{p}{)}\PY{p}{)}
+              
+              \PY{c+c1}{\PYZsh{} This takes a while to run so this print statement lets us track progress}
+              \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Finished}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{lmbda}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Finished 0.02
+Finished 0.05
+Finished 0.06999999999999999
+Finished 0.08
+Finished 0.09
+Finished 0.093
+Finished 0.095
+Finished 0.097
+Finished 0.099
+
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}220}]:} \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Arrival Rate (lambda)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Utilization}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{lmbdas}\PY{p}{,} \PY{n}{utilizations}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{show}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_45_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}221}]:} \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Arrival Rate (\PYZdl{}}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{lambda\PYZdl{})}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Response Time}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{lmbdas}\PY{p}{,} \PY{n}{response\PYZus{}time\PYZus{}95th\PYZus{}percentiles}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{95th percentile}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{lmbdas}\PY{p}{,} \PY{n}{response\PYZus{}time\PYZus{}medians}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{median}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{show}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_46_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \section{Problem 3: Fairness for CPU
+Bursts}\label{problem-3-fairness-for-cpu-bursts}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor} }]:} \PY{k+kn}{import} \PY{n+nn}{bisect}
+        
+        \PY{k}{def} \PY{n+nf}{create\PYZus{}problem3\PYZus{}task}\PY{p}{(}\PY{n}{lmbda}\PY{p}{,} \PY{n}{num\PYZus{}bursts}\PY{p}{)}\PY{p}{:}
+            \PY{c+c1}{\PYZsh{} YOUR CODE HERE}
+            \PY{k}{pass}
+        
+        \PY{k}{def} \PY{n+nf}{create\PYZus{}problem3\PYZus{}workload}\PY{p}{(}\PY{n}{lmbda}\PY{p}{,} \PY{n}{num\PYZus{}bursts}\PY{p}{)}\PY{p}{:}
+            \PY{n}{task\PYZus{}S} \PY{o}{=} \PY{n}{create\PYZus{}problem3\PYZus{}task}\PY{p}{(}\PY{n}{lmbda}\PY{p}{,} \PY{n}{num\PYZus{}bursts}\PY{p}{)}
+            \PY{n}{task\PYZus{}T} \PY{o}{=} \PY{n}{create\PYZus{}problem3\PYZus{}task}\PY{p}{(}\PY{n}{lmbda}\PY{p}{,} \PY{n}{num\PYZus{}bursts}\PY{p}{)}
+            \PY{k}{return} \PY{n}{task\PYZus{}S}\PY{p}{,} \PY{n}{task\PYZus{}T}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor} }]:} \PY{c+c1}{\PYZsh{} Feel free to change this while developing if it takes too long to run}
+        \PY{n}{TRIALS} \PY{o}{=} \PY{l+m+mi}{10000}
+        \PY{n}{N} \PY{o}{=} \PY{l+m+mf}{1.1}
+        
+        \PY{n}{unfair\PYZus{}count} \PY{o}{=} \PY{l+m+mi}{0}
+        \PY{n}{fair\PYZus{}count} \PY{o}{=} \PY{l+m+mi}{0}
+        
+        \PY{k}{for} \PY{n}{\PYZus{}} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{n}{TRIALS}\PY{p}{)}\PY{p}{:}
+            \PY{n}{fcfs\PYZus{}cpu} \PY{o}{=} \PY{n}{fcfs}\PY{p}{(}\PY{n}{create\PYZus{}problem3\PYZus{}workload}\PY{p}{(}\PY{l+m+mf}{1.0}\PY{p}{,} \PY{l+m+mi}{100}\PY{p}{)}\PY{p}{,} \PY{k+kc}{False}\PY{p}{)}
+            \PY{n}{elapsed\PYZus{}0} \PY{o}{=} \PY{n}{fcfs\PYZus{}cpu}\PY{o}{.}\PY{n}{threads}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{o}{.}\PY{n}{elapsed\PYZus{}time}
+            \PY{n}{elapsed\PYZus{}1} \PY{o}{=} \PY{n}{fcfs\PYZus{}cpu}\PY{o}{.}\PY{n}{threads}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{.}\PY{n}{elapsed\PYZus{}time}
+            \PY{k}{if} \PY{n}{elapsed\PYZus{}0} \PY{o}{/} \PY{n}{elapsed\PYZus{}1} \PY{o}{\PYZgt{}} \PY{n}{N} \PY{o+ow}{or} \PY{n}{elapsed\PYZus{}1} \PY{o}{/} \PY{n}{elapsed\PYZus{}0} \PY{o}{\PYZgt{}} \PY{n}{N}\PY{p}{:}
+                \PY{n}{unfair\PYZus{}count} \PY{o}{+}\PY{o}{=} \PY{l+m+mi}{1}
+            \PY{k}{else}\PY{p}{:}
+                \PY{n}{fair\PYZus{}count} \PY{o}{+}\PY{o}{=} \PY{l+m+mi}{1}
+                
+        \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Fraction of runs that were unfair:}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{unfair\PYZus{}count} \PY{o}{/} \PY{p}{(}\PY{n}{fair\PYZus{}count} \PY{o}{+} \PY{n}{unfair\PYZus{}count}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+
+
+    \section{Other Interesting
+Simulations}\label{other-interesting-simulations}
+
+    Here are some other interesting types of graphs you can make, that might
+be useful to you as you complete the assignment.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}182}]:} \PY{c+c1}{\PYZsh{} Useful functions to process the logs}
+          
+          \PY{k}{def} \PY{n+nf}{showQlen}\PY{p}{(}\PY{n}{cpulog}\PY{p}{)}\PY{p}{:}
+              \PY{n}{times} \PY{o}{=} \PY{p}{[}\PY{n}{x}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]} \PY{k}{for} \PY{n}{x} \PY{o+ow}{in} \PY{n}{cpulog} \PY{k}{if} \PY{n}{x}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{run}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+              \PY{n}{lengths} \PY{o}{=} \PY{p}{[}\PY{n}{x}\PY{p}{[}\PY{l+m+mi}{4}\PY{p}{]} \PY{k}{for} \PY{n}{x} \PY{o+ow}{in} \PY{n}{cpulog} \PY{k}{if} \PY{n}{x}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{run}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+              \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{repeat}\PY{p}{(}\PY{n}{times}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{:}\PY{p}{]}\PY{p}{,} \PY{n}{np}\PY{o}{.}\PY{n}{repeat}\PY{p}{(}\PY{n}{lengths}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{:}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
+              
+          \PY{k}{def} \PY{n+nf}{showQweight}\PY{p}{(}\PY{n}{cpulog}\PY{p}{)}\PY{p}{:}
+              \PY{n}{times} \PY{o}{=} \PY{p}{[}\PY{n}{x}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]} \PY{k}{for} \PY{n}{x} \PY{o+ow}{in} \PY{n}{cpulog} \PY{k}{if} \PY{n}{x}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{run}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+              \PY{n}{weights} \PY{o}{=} \PY{p}{[}\PY{n}{x}\PY{p}{[}\PY{l+m+mi}{5}\PY{p}{]} \PY{k}{for} \PY{n}{x} \PY{o+ow}{in} \PY{n}{cpulog} \PY{k}{if} \PY{n}{x}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{run}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+              \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{repeat}\PY{p}{(}\PY{n}{times}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{:}\PY{p}{]}\PY{p}{,} \PY{n}{np}\PY{o}{.}\PY{n}{repeat}\PY{p}{(}\PY{n}{weights}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{:}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}183}]:} \PY{c+c1}{\PYZsh{} Create tasks with exponentially distributed arrival times and run lengths}
+          \PY{c+c1}{\PYZsh{} The utilization is essentially the ratio of the means, but be careful as it gets loaded.}
+          \PY{n}{utilization} \PY{o}{=} \PY{l+m+mf}{0.9}
+          \PY{n}{interval} \PY{o}{=} \PY{l+m+mi}{40}
+          \PY{n}{run\PYZus{}length} \PY{o}{=} \PY{n}{interval}\PY{o}{*}\PY{n}{utilization}
+          \PY{n}{etasks} \PY{o}{=} \PY{n}{make\PYZus{}exp\PYZus{}arrivals}\PY{p}{(}\PY{l+m+mi}{1} \PY{o}{/} \PY{n}{interval}\PY{p}{,} \PY{n}{run\PYZus{}length}\PY{p}{,} \PY{l+m+mi}{200}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}184}]:} \PY{n}{ecpu\PYZus{}fcfs} \PY{o}{=} \PY{n}{fcfs}\PY{p}{(}\PY{n}{etasks}\PY{p}{)}
+          \PY{n}{wait\PYZus{}fcfs} \PY{o}{=} \PY{n+nb}{sum}\PY{p}{(}\PY{p}{[}\PY{n}{x}\PY{o}{.}\PY{n}{wait\PYZus{}time} \PY{k}{for} \PY{n}{x} \PY{o+ow}{in} \PY{n}{ecpu\PYZus{}fcfs}\PY{o}{.}\PY{n}{threads}\PY{p}{]}\PY{p}{)}
+          \PY{n}{ecpu\PYZus{}rr} \PY{o}{=} \PY{n}{round\PYZus{}robin}\PY{p}{(}\PY{n}{etasks}\PY{p}{,} \PY{l+m+mi}{5}\PY{p}{)}
+          \PY{n}{wait\PYZus{}rr} \PY{o}{=} \PY{n+nb}{sum}\PY{p}{(}\PY{p}{[}\PY{n}{x}\PY{o}{.}\PY{n}{wait\PYZus{}time} \PY{k}{for} \PY{n}{x} \PY{o+ow}{in} \PY{n}{ecpu\PYZus{}rr}\PY{o}{.}\PY{n}{threads}\PY{p}{]}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}185}]:} \PY{n}{wait\PYZus{}fcfs}\PY{p}{,} \PY{n}{wait\PYZus{}rr}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}185}]:} (16785.849974406847, 33085.84997440685)
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}186}]:} \PY{n}{showQlen}\PY{p}{(}\PY{n}{ecpu\PYZus{}fcfs}\PY{o}{.}\PY{n}{log}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_56_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}187}]:} \PY{n}{showQlen}\PY{p}{(}\PY{n}{ecpu\PYZus{}rr}\PY{o}{.}\PY{n}{log}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_57_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}188}]:} \PY{n}{showQweight}\PY{p}{(}\PY{n}{ecpu\PYZus{}fcfs}\PY{o}{.}\PY{n}{log}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_58_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}189}]:} \PY{n}{showQweight}\PY{p}{(}\PY{n}{ecpu\PYZus{}rr}\PY{o}{.}\PY{n}{log}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_59_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+    \end{document}
