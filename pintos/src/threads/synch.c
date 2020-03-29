@@ -32,6 +32,8 @@
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 
+extern struct list ready_list;
+
 /* Initializes semaphore SEMA to VALUE.  A semaphore is a
    nonnegative integer along with two atomic operators for
    manipulating it:
@@ -191,6 +193,8 @@ lock_init (struct lock *lock)
   sema_init (&lock->semaphore, 1);
 }
 
+static void thread_recursive_donate (struct thread *t, int donate_priority);
+
 /* Acquires LOCK, sleeping until it becomes available if
    necessary.  The lock must not already be held by the current
    thread.
@@ -202,12 +206,49 @@ lock_init (struct lock *lock)
 void
 lock_acquire (struct lock *lock)
 {
+  struct thread *owner = lock->holder;
+  struct thread *cur = thread_current ();
   ASSERT (lock != NULL);
   ASSERT (!intr_context ());
   ASSERT (!lock_held_by_current_thread (lock));
 
+  enum intr_level old_level;
+  old_level = intr_disable ();
+
+  if (owner != NULL) {
+    cur->wait_lock = lock;
+    if (owner->effective_priority < thread_get_priority ()) {
+      thread_recursive_donate (owner, thread_get_priority ());
+    }
+  }
+
   sema_down (&lock->semaphore);
-  lock->holder = thread_current ();
+  intr_set_level (old_level);
+
+  cur->wait_lock = NULL;
+  lock->holder = cur;
+  list_push_back (&cur->owned_locks, &lock->elem);
+}
+
+static void
+thread_recursive_donate (struct thread *t, int donate_priority)
+{
+  while (t != NULL) {
+    if (t->effective_priority < donate_priority) {
+      t->effective_priority = donate_priority;
+    } else {
+      break;
+    }
+    if (t->wait_lock != NULL) {
+      t = t->wait_lock->holder;
+    } else if (t->status == THREAD_READY) {
+      /* Set effective priority of ready thread. Need to
+        guarantee ready list is ordered. */
+      list_remove (&t->elem);
+      list_insert_ordered (&ready_list, &t->elem, priority_greater, NULL);
+      break;
+    }
+  }
 }
 
 /* Tries to acquires LOCK and returns true if successful or false
@@ -238,12 +279,20 @@ lock_try_acquire (struct lock *lock)
 void
 lock_release (struct lock *lock)
 {
+  struct thread *cur = thread_current ();
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
 
+  enum intr_level old_level;
+  old_level = intr_disable ();
+
   lock->holder = NULL;
+  list_remove (&lock->elem);
+  set_effective_priority (cur);
   sema_up (&lock->semaphore);
+  intr_set_level (old_level);
 }
+
 
 /* Returns true if the current thread holds LOCK, false
    otherwise.  (Note that testing whether some other thread holds

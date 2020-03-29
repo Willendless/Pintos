@@ -411,16 +411,40 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority)
 {
-  thread_current ()->base_priority = new_priority;
+  struct thread *cur = thread_current ();
+  cur->base_priority = new_priority;
+  set_effective_priority (cur);
+  if (!list_empty (&ready_list) &&
+    list_entry (list_front (&ready_list), struct thread, elem)->effective_priority
+    > new_priority) {
+      thread_yield ();
+    }
+}
 
-  /* Temporary modification. */
-  thread_current ()->effective_priority = new_priority;
-  thread_yield ();
-  // if (!list_empty (&ready_list) &&
-  //   list_entry (list_front (&ready_list), struct thread, elem)->effective_priority
-  //   > new_priority) {
-  //     thread_yield ();
-  //   }
+static bool waiters_max_priority (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+
+void
+set_effective_priority (struct thread *t)
+{
+  struct list_elem *e;
+  int max_donate_priority = PRI_MIN;
+  for (e = list_begin (&t->owned_locks);
+      e != list_end (&t->owned_locks); e = list_next (e)) {
+    struct lock *lock = list_entry (e, struct lock, elem);
+    struct list_elem *t = list_max (&lock->semaphore.waiters, waiters_max_priority, NULL);
+    int priority = list_entry (t, struct thread, elem)->effective_priority;
+    max_donate_priority = max_donate_priority > priority ? max_donate_priority : priority;
+  }
+  t->effective_priority = t->base_priority > max_donate_priority ?
+                          t->base_priority : max_donate_priority;
+}
+
+static bool
+waiters_max_priority (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+{
+  struct thread *ta = list_entry (a, struct thread, elem);
+  struct thread *tb = list_entry (b, struct thread, elem);
+  return ta->effective_priority > tb->effective_priority;
 }
 
 /* Returns the current thread's priority. */
@@ -557,6 +581,7 @@ init_thread (struct thread *t, const char *name, int priority)
   strlcpy (t->name, name, sizeof t->name);
   t->stack = (uint8_t *) t + PGSIZE;
   t->base_priority = t->effective_priority = priority;
+  list_init (&t->owned_locks);
   t->magic = THREAD_MAGIC;
 #ifdef USERPROG
   /* init new components of struct thread */
