@@ -160,7 +160,7 @@ thread_tick (void)
   }
 
   /* Enforce preemption. */
-  if (++thread_ticks >= TIME_SLICE || max_priority > thread_get_priority ())
+  if (max_priority > thread_get_priority ())
     intr_yield_on_return ();
 }
 

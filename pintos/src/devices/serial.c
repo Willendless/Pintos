@@ -225,4 +225,5 @@ serial_interrupt (struct intr_frame *f UNUSED)
 
   /* Update interrupt enable register based on queue status. */
   write_ier ();
+  intr_yield_on_return ();
 }

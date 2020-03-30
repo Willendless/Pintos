@@ -70,7 +70,7 @@ sema_down (struct semaphore *sema)
   old_level = intr_disable ();
   while (sema->value == 0)
     {
-      list_push_back (&sema->waiters, &thread_current ()->elem);
+      list_insert_ordered (&sema->waiters, &thread_current ()->elem, waiters_max_priority, NULL);
       thread_block ();
     }
   sema->value--;
@@ -111,15 +111,16 @@ void
 sema_up (struct semaphore *sema)
 {
   enum intr_level old_level;
+  struct list_elem *e = NULL;
   struct thread *t = NULL;
 
   ASSERT (sema != NULL);
 
   old_level = intr_disable ();
   if (!list_empty (&sema->waiters)) {
-    // t = list_entry (list_max (&sema->waiters, waiters_max_priority, NULL), 
-    //                 struct thread, elem);
-    t = list_entry (list_pop_front (&sema->waiters), struct thread, elem);
+    e = list_max (&sema->waiters, waiters_max_priority, NULL);
+    list_remove (e);
+    t = list_entry (e, struct thread, elem);
     thread_unblock (t);
   }
   sema->value++;
@@ -138,7 +139,7 @@ waiters_max_priority (const struct list_elem *a, const struct list_elem *b, void
 {
   struct thread *ta = list_entry (a, struct thread, elem);
   struct thread *tb = list_entry (b, struct thread, elem);
-  return ta->effective_priority > tb->effective_priority;
+  return ta->effective_priority < tb->effective_priority;
 }
 
 static void sema_test_helper (void *sema_);
@@ -230,8 +231,8 @@ lock_acquire (struct lock *lock)
       thread_recursive_donate (owner, thread_get_priority ());
     }
   }
-  sema_down (&lock->semaphore);
   intr_set_level (old_level);
+  sema_down (&lock->semaphore);
 
   cur->wait_lock = NULL;
   lock->holder = cur;
@@ -299,8 +300,8 @@ lock_release (struct lock *lock)
   lock->holder = NULL;
   list_remove (&lock->elem);
   set_effective_priority (cur);
-  sema_up (&lock->semaphore);
   intr_set_level (old_level);
+  sema_up (&lock->semaphore);
 }
 
 
