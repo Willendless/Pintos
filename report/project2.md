@@ -11,3 +11,5 @@ Replace this text with your final report.
 2. condvar implementation
     + add field (priority) in struct semaphore_elem
         + when insert semaphore_elem into cond's wait queue, current thread hasn't been blocked in sama.
+
+3. sema's waiters may dynamically change
