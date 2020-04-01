@@ -1,4 +1,4 @@
- Scheduling Lab
+# Scheduling Lab
 
 ## 1 Scheduling Simulator Implementation
 
@@ -51,12 +51,12 @@
 (a) This is an open system, since new tasks may arrive before old task completed
 
 (b) We should choose $\frac{1}{M}$. Since the mean of exponential distribution is $\frac{1}{\lambda}$, then  
-$$\frac{1}{\lambda} = M$$,  
+$$\frac{1}{\lambda} = M$$  
 so  
 $$\lambda = \frac{1}{M}$$  
 
 (c) We should choose $\frac{1}{2M}$. Same as (b), we have  
-$$\frac{1}{\lambda} = 2M$$,  
+$$\frac{1}{\lambda} = 2M$$  
 so  
 $$\lambda = \frac{1}{2M}$$  
 
