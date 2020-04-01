@@ -113,12 +113,12 @@ end
 When m is big enough, then the CPU allocation will be fair with FCFS.
 
 (f) 
-We create two tasks for each simulation with different m, each task has m bursts represents m threads. When creating task, we precalculate m burst length for each task which subject to exponential distribution. In simulation, every time one thread finish, the corresponding task will return next cpu burst length as next running thread.  
+We create two tasks for each simulation with different m, each task has m bursts represents m threads. When creating task, we precalculate m burst length for each task which subject to exponential distribution. In simulation, every time one thread finishes, the corresponding task will return next cpu burst length as next running thread.  
 For drawing the graph, we use different value of m, and plot the m vs. unfair fraction curve.  
 
 ![404](unfair.png)
 
-As can be seen in the graph, the unfair fraction drastically decreasing with m increasing.  
+As shown by the graph, the unfair fraction drastically decreases with m increasing.  
 
 ```python
 def create_problem3_task(lmbda, num_bursts):
