@@ -4,14 +4,14 @@
 
 **(a) SRTF**
 
-0: Arrival of Task 12 (ready queue length = 1) 
-0: Run Task 12 for duration 2 (ready queue length = 0) 
-1: Arrival of Task 13 (ready queue length = 1) 
-2: Arrival of Task 14 (ready queue length = 2) 
-2: IO wait for Task 12 for duration 1 
-2: Run Task 14 for duration 1 (ready queue length = 1) 
-3: Arrival of Task 15 (ready queue length = 2) 
-3: Wakeup of Task 12 (ready queue length = 3) 
+0: Arrival of Task 12 (ready queue length = 1)  
+0: Run Task 12 for duration 2 (ready queue length = 0)  
+1: Arrival of Task 13 (ready queue length = 1)  
+2: Arrival of Task 14 (ready queue length = 2)
+2: IO wait for Task 12 for duration 1
+2: Run Task 14 for duration 1 (ready queue length = 1)
+3: Arrival of Task 15 (ready queue length = 2)
+3: Wakeup of Task 12 (ready queue length = 3)
 3: IO wait for Task 14 for duration 2
 3: Run Task 12 for duration 2 (ready queue length = 2)
 5: Wakeup of Task 14 (ready queue length = 3)
