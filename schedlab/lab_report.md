@@ -65,6 +65,8 @@ $$\lambda = \frac{1}{2M}$$
 
 (e) 
 
+1. For median response time, it stays 
+
 ![404](2.png)
 
 (f)
