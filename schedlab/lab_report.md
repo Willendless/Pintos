@@ -112,6 +112,4 @@ end
 
 When m is big enough, then the CPU allocation will be fair with FCFS.
 
-(f)
-
-(g)
+(f) 
