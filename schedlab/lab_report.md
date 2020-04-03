@@ -82,7 +82,7 @@ $$\lambda = \frac{1}{2M}$$
 
 (g) A system with nearly 100% throughput means tasks are arriving at a high rate and few context switching, which will increase average response time and cause latency.
 
-## 3 Fairness for CPU Bursts
+## 3 Fairness for CPU Bursts
 
 (a) For each task there will be only one thread running it at a time. So at any time, there will be at most 2 threads in FCFS queue.
 
