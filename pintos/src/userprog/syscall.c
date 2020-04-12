@@ -52,15 +52,16 @@ verify_fd (int fd)
 }
 
 static bool
-verify_str (const char *str){
+verify_str (const char *str)
+{
   const int MAX_LEN = 128;
   int len = 0;
   if (str == NULL)
     return false;
-  do{
+  do {
     if(!verify_addr(str, sizeof(char)))
       return false;
-  }while (*(str++)!='\0' && (++len) < MAX_LEN);
+  } while (*(str++)!='\0' && (++len) < MAX_LEN);
   return true;
 }
 
