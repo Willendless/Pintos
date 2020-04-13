@@ -336,7 +336,10 @@ struct file *filesys_open (const char *name)
   2. starting from root, visit the inode according to each part
   3. return the inode if the file exist.
 
-+ find_inode_by_path 
++ find_inode_by_path ()
+  1. check if path begins by '\\\\' or '/'
+  2. if true, call find_inode_by_absolute_path ()
+  3. else call find_inode_by_relative_path ()
 
 #### Synchronization
     
