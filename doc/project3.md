@@ -184,7 +184,19 @@ int cache_put (sector, buffer, size)
     ```c
     struct inode * inode_open (block_sector_t sector)
     ```
-    + use cache_get insread of block_read
+    + use `cache_get()` insread of `block_read()`
+
++ inode_create ()
+    ```c
+    bool inode_create (block_sector_t sector, off_t length)
+    ```
+    + use cache_put instead of block_write
+
++ inode_length ()
+    ```c
+    off_t inode_length (const struct inode *inode);
+    ```
+    + first use cache_get() to read on-disk inode, then return inode data length 
 
 #### Synchronization
 
@@ -218,7 +230,7 @@ Using two-level locking to implement thread-safe buffer cache:
 ```c
 static struct internal_node
 {
-  uint32_t ptr[BLOCK_SECTOR_SIZE / 4];
+  block_sector_t ptr[128];
 }
 ```
 
@@ -229,7 +241,7 @@ static struct internal_node
 struct inode_disk
 {
   off_t length;                       /* File size in bytes. */
-  block_sector_t direct_ptr[12];
+  block_sector_t direct_ptr[DIRECT_PTR_SIZE];
   block_sector_t indirect_ptr;
   block_sector_t dbl_indirect_ptr;
   unsigned magic;                     /* Magic number. */
@@ -251,29 +263,17 @@ struct inode_disk
     ```
     + first read on-disk inode, then calculate the sector number according to file length and pos
 
-+ inode_create ()
-    ```c
-    bool inode_create (block_sector_t sector, off_t length)
-    ```
-    + use cache_put instead of block_write
-
-+ inode_length ()
-    ```c
-    off_t inode_length (const struct inode *inode);
-    ```
-    + first use cache_get() to read on-disk inode, then return inode data length 
-
-+ inode_read_at () 
-    ```c
-    off_t inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
-    ```
-    + 
-
 + inode_write_at ()
     ```c
     off_t inode_write_at (struct inode *inode, const void *buffer_, off_t size, off_t offset)
     ```
-    + first calculate the destination sector
+    + dynamic calculate the write destination sector and extends the file if necessary
+
++ inode_close ()
+    ```c
+    void inode_close (struct inode *inode)
+    ```
+    + if release resources, release all sectors assigned to the inode  
 
 #### Algorithms
     
@@ -336,7 +336,10 @@ struct file *filesys_open (const char *name)
   2. starting from root, visit the inode according to each part
   3. return the inode if the file exist.
 
-+ find_inode_by_path 
++ find_inode_by_path ()
+  1. check if path begins by '\\\\' or '/'
+  2. if true, call find_inode_by_absolute_path ()
+  3. else call find_inode_by_relative_path ()
 
 #### Synchronization
     
