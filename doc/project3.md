@@ -30,12 +30,12 @@ Design Document for Project 3: File Systems
     struct cache_entry {
         struct list_elem elem;
         uint8_t buffer[BLOCK_SECTOR_SIZE];
-        bool modified;
-        bool valid;
+        bool modified;                          /* if valid */
+        bool valid;                             /* if modified */
+        bool active;                            /* if entry in active list */
         block_sector_t sector;                  /* sector number */
-        struct block* block;
-        struct lock* lock;
-        struct condition* cond;
+        struct block* block;                    /* device */
+        struct lock* lock;                      /* per entry lock */
     }
     ```
     + use 64 `struct cache_entry` to store each cached block, manage them with FIFO queue `active_list` and LRU queue `second_chance_list` each of them are fixed sized with 32 cache entry
@@ -91,94 +91,13 @@ Design Document for Project 3: File Systems
     ```c
     off_t inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset);
     ```
-    + use buffer cache get interface instead of block_read()
+    + use buffer cache get interface instead of `block_read()`
 
 + inode_write_at()
     ```c
     off_t inode_write_at (struct inode *inode, const void *buffer_, off_t size, off_t offset);
     ```
-    + use buffer cache put interface insread of block_write()
-
-#### Algorithms
-
-*second chance list:*
-
-Active list uses FIFO strategy and SC list uses LRU strategy.
-1. cache buffer hit
-    + read:
-        1. active list hit: directly return data
-        2. sc list hit: put elem into head of active list and return data
-    + write:
-        1. active list hit: write data and set modified bit
-        2. sc list hit: put elem into head of active list and write data and set modified bit
-2. cache buffer miss
-    + read:
-        1. replace
-    + write: least used cache, then the same as cache hit.
-        1. if write size equals to BLOCK_SECTOR_SIZE 
-
-3. replace the least used cache without reading from disk
-        2. else replace the least used cache with reading from disk
-        3. the same as cache hitif active list has more node the sc list, move the first node of active list to sc list.
-
-+ cache_search()
-```c
-static struct cache_entry *cache_search(sector)
-{
-    struct cache_entry *entry;
-    lock_acquire(&cache_lock);
-    /* 
-        1. traverse active list to find entry
-            + if hit, set entry
-            + if miss, traverse SC list to find entry 
-                + if hit, move entry to head of active list
-                + if miss, move tail of second chance list to head of active list
-    */
-    lock_release(&cache_lock);
-    return entry
-}
-```
-
-+ cache_get()
-```c
-int cache_get (sector, buffer)
-{
-    cache_entry *entry = cache_search();
-    lock_acquire(&entry->lock);
-    /* 
-        if entry hit:
-        1. copy data to buffer
-    */
-    /* 
-        if entry miss
-        1. if modified bit set, write back data
-        2. call block_read() to feed entry data
-        3. copy data to buffer
-    */
-    lock_release(&entry->lock);
-}
-
-```
-
-+ cache_put()
-```c
-int cache_put (sector, buffer, size)
-{
-    cache_entry *entry = cache_search();
-    lock_require(&entry->lock);
-    /* 
-        if entry hit:
-        1. copy data from buffer to entry data
-    */
-    /* 
-        if entry miss:
-        1. if modified bit set, write back data
-        2. if size smaller than BLOCK_SECTOR_SIZE call block_read() to feed entry data
-        3. write data to entry and set modified bit 
-    */
-    lock_release(&entry->lock);
-}
-```
+    + use buffer cache put interface insread of `block_write()`
 
 + inode_open () 
     ```c
@@ -190,34 +109,53 @@ int cache_put (sector, buffer, size)
     ```c
     bool inode_create (block_sector_t sector, off_t length)
     ```
-    + use cache_put instead of block_write
+    + use `cache_put()` instead of `block_write()`
 
 + inode_length ()
     ```c
     off_t inode_length (const struct inode *inode);
     ```
-    + first use cache_get() to read on-disk inode, then return inode data length 
+    + first use `cache_get()` to read on-disk inode, then return inode data length 
+
+#### Algorithms
+
+*second chance list:*
+
+Active list uses FIFO strategy and SC list uses LRU strategy.
+
+First acquire global `cache_lock`, then execute:
+1. traverse active list
+    1.1 if hit, call `lock_try_acquire()` on `entry_lock`
+        1.1.1 if success, release `cache_lock` and execute IO operation
+        1.1.2 if `entry_lock` held by another thread, release `cache_lock` then call lock_acquire() on `entry_lock` after return, double check if `entry_lock` really hit and in active list
+            + if hit, then execute IO operation
+            + if miss, redo 1
+    1.2 if miss, goto 2
+2. traverse second chance list
+    2.1 if hit, first move entry to head of active list and move tail of active list to head of second chance list, then acquire `entry_lock`, release `cache_lock` and do IO operation
+    2.2 if miss, first modify field of tail of second chance list and move it to the head of active list, move the tail of the active list, then acquire `entry_lock`, release `cache_lock`, then
+        + if mofified bit is set, then write back
+        + execute IO operation
+    
+special case:
+    + generally, when doing write operation, if miss we should first read the corresponding sector from the disk, then overwrite it. However, if the write size equals to length of sector then there is no need to read the sector before write to the buffer cache entry, we can directly write the sector to the buffer
 
 #### Synchronization
 
 Using two-level locking to implement thread-safe buffer cache:
     1. global buffer cache lock
         + protect the list structure of active list and second chance list
+        + guarantee that at any time there can only be one thread modifying the structure of the lists
     2. fine granularity per entry lock
-        + guarantee the automic access of cached block
-    
-1. active_list
-
-2. second_chance_list
-
-3. cache_entry
+        + guarantee that at ant time there can only be one operation executed on a single entry 
 
 #### Rationale
 
-1. global cache_lock guarantees there is only one thread can modify list structure at any time
-    invariant: no other thread is modifying list
+1. we can modify the size of active list and the second chance list to test the performance of different size combination 
 
 2. use active_list to avoid frequently moving node to the end of list if the cache is visited frequently.
+
+3. use second chance list to guarantee that when evicting a entry no other thread is executing IO operation on that evicted entry 
 
 ### Task 2: Extensible Files
 
