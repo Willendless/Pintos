@@ -125,24 +125,24 @@ Active list uses FIFO strategy and SC list uses LRU strategy.
 
 First acquire global `cache_lock`, then execute:
 1. traverse active list
-    1.1 if hit, call `lock_try_acquire()` on `entry_lock`  
-        1.1.1 if success, release `cache_lock` and execute IO operation  
-        1.1.2 if `entry_lock` held by another thread, release `cache_lock` then call lock_acquire() on `entry_lock` after return, double check if `entry_lock` really hit and in active list  
+    1. if hit, call `lock_try_acquire()` on `entry_lock`  
+        1. if success, release `cache_lock` and execute IO operation  
+        1. if `entry_lock` held by another thread, release `cache_lock` then call lock_acquire() on `entry_lock` after return, double check if `entry_lock` really hit and in active list  
             + if hit, then execute IO operation  
-            + if miss, redo 1  
-    1.2 if miss, goto 2  
+            + if miss, redo traverse  
+    2. if miss, goto 2  
 2. traverse second chance list  
-    2.1 if hit, first move entry to head of active list and move tail of active list to head of second chance list, then acquire `entry_lock`, release `cache_lock` and do IO operation  
-    2.2 if miss, first modify field of tail of second chance list and move it to the head of active list, move the tail of the active list, then acquire `entry_lock`, release `cache_lock`, then  
+    1. if hit, first move entry to head of active list and move tail of active list to head of second chance list, then acquire `entry_lock`, release `cache_lock` and do IO operation  
+    2. if miss, first modify field of tail of second chance list and move it to the head of active list, move the tail of the active list, then acquire `entry_lock`, release `cache_lock`, then  
         + if mofified bit is set, then write back  
         + execute IO operation  
     
 special case:  
-    + generally, when doing write operation, if miss we should first read the corresponding sector from the disk, then overwrite it. However, if the write size equals to length of sector then there is no need to read the sector before write to the buffer cache entry, we can directly write the sector to the buffer
+> generally, when doing write operation, if miss we should first read the corresponding sector from the disk, then overwrite it. However, if the write size equals to length of sector then there is no need to read the sector before write to the buffer cache entry, we can directly write the sector to the buffer
 
 #### Synchronization
 
-Using two-level locking to implement thread-safe buffer cache:
++ *Using two-level locking to implement thread-safe buffer cache:*
     1. global buffer cache lock
         + protect the list structure of active list and second chance list
         + guarantee that at any time there can only be one thread modifying the structure of the lists
