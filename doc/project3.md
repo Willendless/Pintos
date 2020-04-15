@@ -125,19 +125,19 @@ Active list uses FIFO strategy and SC list uses LRU strategy.
 
 First acquire global `cache_lock`, then execute:
 1. traverse active list
-    1.1 if hit, call `lock_try_acquire()` on `entry_lock`
-        1.1.1 if success, release `cache_lock` and execute IO operation
-        1.1.2 if `entry_lock` held by another thread, release `cache_lock` then call lock_acquire() on `entry_lock` after return, double check if `entry_lock` really hit and in active list
-            + if hit, then execute IO operation
-            + if miss, redo 1
-    1.2 if miss, goto 2
-2. traverse second chance list
-    2.1 if hit, first move entry to head of active list and move tail of active list to head of second chance list, then acquire `entry_lock`, release `cache_lock` and do IO operation
-    2.2 if miss, first modify field of tail of second chance list and move it to the head of active list, move the tail of the active list, then acquire `entry_lock`, release `cache_lock`, then
-        + if mofified bit is set, then write back
-        + execute IO operation
+    1.1 if hit, call `lock_try_acquire()` on `entry_lock`  
+        1.1.1 if success, release `cache_lock` and execute IO operation  
+        1.1.2 if `entry_lock` held by another thread, release `cache_lock` then call lock_acquire() on `entry_lock` after return, double check if `entry_lock` really hit and in active list  
+            + if hit, then execute IO operation  
+            + if miss, redo 1  
+    1.2 if miss, goto 2  
+2. traverse second chance list  
+    2.1 if hit, first move entry to head of active list and move tail of active list to head of second chance list, then acquire `entry_lock`, release `cache_lock` and do IO operation  
+    2.2 if miss, first modify field of tail of second chance list and move it to the head of active list, move the tail of the active list, then acquire `entry_lock`, release `cache_lock`, then  
+        + if mofified bit is set, then write back  
+        + execute IO operation  
     
-special case:
+special case:  
     + generally, when doing write operation, if miss we should first read the corresponding sector from the disk, then overwrite it. However, if the write size equals to length of sector then there is no need to read the sector before write to the buffer cache entry, we can directly write the sector to the buffer
 
 #### Synchronization
@@ -166,16 +166,17 @@ Using two-level locking to implement thread-safe buffer cache:
 *Adding following data structures*
 
 ```c
-static struct internal_node
+struct ptr_block_t
 {
   block_sector_t ptr[128];
-}
+};
 ```
 
 *Modifying following data structures*
 
 ```c
 #define DIRECT_PTR_SIZE 12
+
 struct inode_disk
 {
   off_t length;                       /* File size in bytes. */
@@ -186,6 +187,34 @@ struct inode_disk
   uint32_t unused[112];               /* Not used. */
  };
 ```
+
+```c
+/* In-memory inode. */
+struct inode
+{
+    struct list_elem elem;              /* Element in inode list. */
+    block_sector_t sector;              /* Sector number of disk location. */
+    int open_cnt;                       /* Number of openers. */
+    bool removed;                       /* True if deleted, false otherwise. */
+    int deny_write_cnt;                 /* 0: writes ok, >0: deny writes. */
+
+    struct lock *lock;                  /* inode is shared data structure. */            
+};
+```
+
+*Adding following functions*
+
++ syscall_inumber ()
+    ```c
+    int inumber (int fd)
+    ```
+    + return the inode of the file indexed by fd in current thread's `open_files[MAX_OPEN_FILES]`
+
++ locate_inode_sector ()
+    ```c
+    block_sector_t locate_inode_sector (inode *inode, off_t offset)
+    ```
+    + calculate the sector number of inode data with offset `offset`
 
 *Modifying following functions*
 
@@ -201,11 +230,17 @@ struct inode_disk
     ```
     + first read on-disk inode, then calculate the sector number according to file length and pos
 
++ inode_read_at () 
+    ```c
+    off_t inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
+    ```
+    + dyncamically get the read destination sector use `locate_inode_sector()` and read data
+
 + inode_write_at ()
     ```c
     off_t inode_write_at (struct inode *inode, const void *buffer_, off_t size, off_t offset)
     ```
-    + dynamic calculate the write destination sector and extends the file if necessary
+    + dynamically calculate the write destination sector use `locate_inode_sector()` and extends the file if necessary
 
 + inode_close ()
     ```c
@@ -214,8 +249,23 @@ struct inode_disk
     + if release resources, release all sectors assigned to the inode  
 
 #### Algorithms
-    
+
+1. *locate the sector of data in a file(used in both read & write operation):*
+    1. use offset to calculate which level indirect ptr pointing to the sector of data
+    2. use `cache_get()` to get corresponding sector number in `struct internel_node::ptr[128]`
+
+2. *handle disk exhaustion:*
+    + in `inode_write_at()` 
+        1. calculate the number of new sectors current write operation needs 
+        2. check if there is enough free sector in `free_map` for allocating
+            + if yes, continuing write
+            + if no, abort the write operation
+
 #### Synchronization
+
+*file system synchronization:*
+
+1. when threads access in-memory inode, they should acquire the inode lock first
     
 #### Rationale
 
