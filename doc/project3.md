@@ -210,12 +210,6 @@ struct inode
     ```
     + return the inode of the file indexed by fd in current thread's `open_files[MAX_OPEN_FILES]`
 
-+ locate_inode_sector ()
-    ```c
-    block_sector_t locate_inode_sector (inode *inode, off_t offset)
-    ```
-    + calculate the sector number of inode data with offset `offset`
-
 *Modifying following functions*
 
 + filesys_create ()
@@ -250,9 +244,9 @@ struct inode
 
 #### Algorithms
 
-1. *locate the sector of data in a file(used in both read & write operation):*
+1. *byte_to_sector(used in both read & write operation):*
     1. use offset to calculate which level indirect ptr pointing to the sector of data
-    2. use `cache_get()` to get corresponding sector number in `struct internel_node::ptr[128]`
+    2. use `cache_get()` to first get on-disk inode then get corresponding sector number by traverse entry `struct internel_node::ptr[128]`
 
 2. *handle disk exhaustion:*
     + in `inode_write_at()` 
