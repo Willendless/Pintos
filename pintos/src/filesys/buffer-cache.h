@@ -2,21 +2,17 @@
 #define BUFFER_CACHE_H
 
 #include <list.h>
+#include <stdbool.h>
 #include "devices/block.h"
 #include "threads/synch.h"
+#include "filesys/off_t.h"
 
 #define CACHE_SIZE 64
 
-struct cache_entry
-{
-    struct list_elem elem;
-    uint8_t buffer[BLOCK_SECTOR_SIZE];
-    bool modified;
-    bool valid;
-    bool active;
-    block_sector_t sector;
-    struct lock *lock;
-}
-
+void cache_init (void);
+int cache_get (struct block* block, block_sector_t sector, off_t sector_ofs,
+               uint8_t *buffer, off_t size);
+int cache_put (struct block *block, block_sector_t sector, off_t sector_ofs,
+               uint8_t *buffer, off_t size); 
 
 #endif
