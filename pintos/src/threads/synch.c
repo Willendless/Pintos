@@ -272,13 +272,18 @@ bool
 lock_try_acquire (struct lock *lock)
 {
   bool success;
+  struct thread *cur = thread_current ();
 
   ASSERT (lock != NULL);
   ASSERT (!lock_held_by_current_thread (lock));
 
   success = sema_try_down (&lock->semaphore);
-  if (success)
+  if (success) {
+    cur->wait_lock = NULL;
+    lock->holder = cur;
+    list_push_back (&cur->owned_locks, &lock->elem);
     lock->holder = thread_current ();
+  }
   return success;
 }
 

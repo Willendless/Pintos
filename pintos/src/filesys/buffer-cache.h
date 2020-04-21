@@ -13,6 +13,6 @@ void cache_init (void);
 int cache_get (struct block* block, block_sector_t sector, off_t sector_ofs,
                uint8_t *buffer, off_t size);
 int cache_put (struct block *block, block_sector_t sector, off_t sector_ofs,
-               uint8_t *buffer, off_t size); 
+               const uint8_t *buffer, off_t size); 
 
 #endif

@@ -90,7 +90,7 @@ inode_create (block_sector_t sector, off_t length)
       disk_inode->magic = INODE_MAGIC;
       if (free_map_allocate (sectors, &disk_inode->start))
         {
-          cache_put (fs_device, sector, 0, disk_inode, BLOCK_SECTOR_SIZE);
+          cache_put (fs_device, sector, 0, (uint8_t *) disk_inode, BLOCK_SECTOR_SIZE);
           // block_write (fs_device, sector, disk_inode);
           if (sectors > 0)
             {
@@ -98,8 +98,8 @@ inode_create (block_sector_t sector, off_t length)
               size_t i;
 
               for (i = 0; i < sectors; i++)
-                cache_put (fs_device, disk_inode->start + i, 0, zeros, BLOCK_SECTOR_SIZE);
-                block_write (fs_device, disk_inode->start + i, zeros);
+                cache_put (fs_device, disk_inode->start + i, 0, (const uint8_t *) zeros, BLOCK_SECTOR_SIZE);
+                // block_write (fs_device, disk_inode->start + i, zeros);
             }
           success = true;
         }
@@ -140,7 +140,8 @@ inode_open (block_sector_t sector)
   inode->open_cnt = 1;
   inode->deny_write_cnt = 0;
   inode->removed = false;
-  block_read (fs_device, inode->sector, &inode->data);
+  cache_get (fs_device, inode->sector, 0, (uint8_t *) &inode->data, BLOCK_SECTOR_SIZE);
+  // block_read (fs_device, inode->sector, &inode->data);
   return inode;
 }
 
@@ -266,7 +267,7 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
 {
   const uint8_t *buffer = buffer_;
   off_t bytes_written = 0;
-  uint8_t *bounce = NULL;
+  // uint8_t *bounce = NULL;
 
   if (inode->deny_write_cnt)
     return 0;
@@ -320,7 +321,7 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
       offset += chunk_size;
       bytes_written += chunk_size;
     }
-  free (bounce);
+  // free (bounce);
 
   return bytes_written;
 }
@@ -349,9 +350,9 @@ inode_allow_write (struct inode *inode)
 off_t
 inode_length (const struct inode *inode)
 {
-  // return inode->data.length;
-  int length;
-  cache_get (fs_device, inode->sector, offsetof (struct inode_disk, length),
-             length, sizeof(length));
-  return length;
+  return inode->data.length;
+  // int length;
+  // cache_get (fs_device, inode->sector, offsetof (struct inode_disk, length),
+  //            length, sizeof(length));
+  // return length;
 }

@@ -14,8 +14,9 @@ typedef struct {
     struct list_elem elem;
     uint8_t buffer[BLOCK_SECTOR_SIZE];
     bool modified;
-    // bool valid;
+    bool valid;
     block_sector_t sector;
+    block_sector_t old_sector;
     struct lock lock;
     struct condition cond;
 } cache_entry_t;
@@ -23,7 +24,8 @@ typedef struct {
 /* Create new cache entry. */
 static cache_entry_t *cache_entry_init (void);
 static void get_buffer (cache_entry_t *, off_t, uint8_t *, off_t);
-static void put_buffer ();
+static void put_buffer (cache_entry_t *entry,  off_t sector_ofs, const uint8_t *buffer,
+                        off_t size);
 static bool get_cache_entry (block_sector_t sector, cache_entry_t **entry);
 
 void
@@ -44,8 +46,9 @@ cache_entry_init (void)
     return NULL;
   }
   lock_init (&new->lock);
+  cond_init (&new->cond);
   new->modified = false;
-  // new->valid = false;
+  new->valid = false;
   return new;
 }
 
@@ -58,58 +61,39 @@ cache_get (struct block* block, block_sector_t sector, off_t sector_ofs,
   if (get_cache_entry (sector, &hit_entry)) {
     get_buffer (hit_entry, sector_ofs, buffer, size);
   } else {
+    if (hit_entry->modified) {
+      block_write (block, hit_entry->old_sector, hit_entry->buffer);
+    }
     block_read (block, sector, hit_entry->buffer);
+    hit_entry->modified = false;
     get_buffer (hit_entry, sector_ofs, buffer, size);
   }
+  return 0;
 }
 
-static bool
-get_cache_entry (block_sector_t sector, cache_entry_t **entry)
+int
+cache_put (struct block *block, block_sector_t sector, off_t sector_ofs,
+           const uint8_t *buffer, off_t size)
 {
-  int i;
-  struct list_elem *e;
-  bool hit = false;
   cache_entry_t *hit_entry;
-
-  lock_acquire (&cache_lock);
-loop:
-  for (e = list_begin (&cache_list); e != list_end (&cache_list);
-       e = list_next (e))
-    {
-      cache_entry_t *en = list_entry (e, cache_entry_t, elem);
-      /* hit */
-      if (en->sector == sector) {
-        while (lock_try_acquire (&en->lock)) {
-          cond_wait (&en->cond, &cache_lock);
-        }
-        if (en->sector != sector) {
-          lock_release (&en);
-          goto loop;
-        }
-        /* Move to head of cache list. */
-        list_remove (en);
-        list_push_front (&cache_list, en);
-        hit = true;
-        hit_entry = en;
-        break;
-      }
+  if (get_cache_entry (sector, &hit_entry)) {
+    put_buffer (hit_entry, sector_ofs, buffer, size);
+    hit_entry->modified = true;
+  } else if (sector_ofs == 0 && size == BLOCK_SECTOR_SIZE) {
+    if (hit_entry->modified) {
+      block_write (block, hit_entry->old_sector, hit_entry->buffer);
     }
-  /* Try evict back of cahce_list. */
-  hit = false;
-  hit_entry = list_back (&cache_list);
-  while (lock_try_acquire (hit_entry)) {
-    cond_wait (&hit_entry->cond, &cache_lock);
-  }
-  if (hit_entry != list_back (&cache_list)) {
-    goto loop;
+    hit_entry->modified = true;
+    put_buffer (hit_entry, sector_ofs, buffer, size);
   } else {
-    hit_entry->sector = sector;
-    list_remove (hit_entry);
-    list_push_front (&cache_list, hit_entry);
+    if (hit_entry->modified) {
+      block_write (block, hit_entry->old_sector, hit_entry->buffer);
+    }
+    block_read (block, sector, hit_entry->buffer);
+    hit_entry->modified = true;
+    put_buffer (hit_entry, sector_ofs, buffer, size);
   }
-  lock_release (&cache_lock);
-  *entry = hit_entry;
-  return hit;
+  return 0;
 }
 
 static void 
@@ -126,23 +110,8 @@ get_buffer (cache_entry_t *entry, off_t sector_ofs, uint8_t *buffer,
   lock_release (&cache_lock);
 }
 
-int
-cache_put (struct block *block, block_sector_t sector, off_t sector_ofs,
-           uint8_t *buffer, off_t size)
-{
-  cache_entry_t *hit_entry;
-  if (get_cache_entry (sector, &hit_entry)) {
-    put_buffer (hit_entry, buffer, sector_ofs, size);
-  } else if (sector_ofs == 0 && size == BLOCK_SECTOR_SIZE) {
-    put_buffer (hit_entry, buffer, sector_ofs, size);
-  } else {
-    block_read (block, sector, hit_entry->buffer);
-    put_buffer (hit_entry, buffer, sector_ofs, size);
-  }
-}
-
 static void
-put_buffer (cache_entry_t *entry,  off_t sector_ofs, uint8_t *buffer,
+put_buffer (cache_entry_t *entry,  off_t sector_ofs, const uint8_t *buffer,
             off_t size)
 {
   ASSERT (sector_ofs + size <= BLOCK_SECTOR_SIZE);
@@ -153,4 +122,57 @@ put_buffer (cache_entry_t *entry,  off_t sector_ofs, uint8_t *buffer,
   lock_acquire (&cache_lock);
   cond_broadcast (&entry->cond, &cache_lock);
   lock_release (&cache_lock);
+}
+
+static bool
+get_cache_entry (block_sector_t sector, cache_entry_t **entry)
+{
+  struct list_elem *e;
+  bool hit = false;
+  cache_entry_t *hit_entry;
+
+  lock_acquire (&cache_lock);
+loop:
+  for (e = list_begin (&cache_list); e != list_end (&cache_list);
+       e = list_next (e))
+    {
+      cache_entry_t *en = list_entry (e, cache_entry_t, elem);
+      if (en->valid == false) 
+        break;
+      /* hit */
+      if (en->sector == sector) {
+        while (!lock_try_acquire (&en->lock)) {
+          cond_wait (&en->cond, &cache_lock);
+        }
+        if (en->sector != sector) {
+          lock_release (&en->lock);
+          goto loop;
+        }
+        /* Move to head of cache list. */
+        list_remove (&en->elem);
+        list_push_front (&cache_list, &en->elem);
+        hit = true;
+        hit_entry = en;
+        break;
+      }
+    }
+  if (hit == false) {
+    /* Try evict back of cahce_list. */
+    hit_entry = list_entry (list_back (&cache_list), cache_entry_t, elem);
+    while (!lock_try_acquire (&hit_entry->lock)) {
+      cond_wait (&hit_entry->cond, &cache_lock);
+    }
+    if (&hit_entry->elem != list_back (&cache_list)) {
+      goto loop;
+    } else {
+      hit_entry->old_sector = hit_entry->sector;
+      hit_entry->sector = sector;
+      hit_entry->valid = true;
+      list_remove (&hit_entry->elem);
+      list_push_front (&cache_list, &hit_entry->elem);
+    }
+  }
+  lock_release (&cache_lock);
+  *entry = hit_entry;
+  return hit;
 }
