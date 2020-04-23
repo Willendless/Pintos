@@ -37,8 +37,8 @@ struct inode
     int open_cnt;                       /* Number of openers. */
     bool removed;                       /* True if deleted, false otherwise. */
     int deny_write_cnt;                 /* 0: writes ok, >0: deny writes. */
-    struct inode_disk data;             /* Inode content. */
   };
+
 
 /* Returns the block device sector that contains byte offset POS
    within INODE.
@@ -48,8 +48,12 @@ static block_sector_t
 byte_to_sector (const struct inode *inode, off_t pos)
 {
   ASSERT (inode != NULL);
-  if (pos < inode->data.length)
-    return inode->data.start + pos / BLOCK_SECTOR_SIZE;
+  ASSERT (true);
+  struct inode_disk inode_disk;
+  cache_get (fs_device, inode->sector, 0, (uint8_t *)&inode_disk, BLOCK_SECTOR_SIZE);
+  /** TODO: extensible file. */
+  if (pos < inode_disk.length)
+    return inode_disk.start + pos / BLOCK_SECTOR_SIZE;
   else
     return -1;
 }
@@ -90,16 +94,16 @@ inode_create (block_sector_t sector, off_t length)
       disk_inode->magic = INODE_MAGIC;
       if (free_map_allocate (sectors, &disk_inode->start))
         {
-          cache_put (fs_device, sector, 0, (uint8_t *) disk_inode, BLOCK_SECTOR_SIZE);
-          // block_write (fs_device, sector, disk_inode);
+          cache_put (fs_device, sector, 0, (uint8_t *) disk_inode,
+                     BLOCK_SECTOR_SIZE);
           if (sectors > 0)
             {
               static char zeros[BLOCK_SECTOR_SIZE];
               size_t i;
 
               for (i = 0; i < sectors; i++)
-                cache_put (fs_device, disk_inode->start + i, 0, (const uint8_t *) zeros, BLOCK_SECTOR_SIZE);
-                // block_write (fs_device, disk_inode->start + i, zeros);
+                cache_put (fs_device, disk_inode->start + i, 0,
+                          (const uint8_t *) zeros, BLOCK_SECTOR_SIZE);
             }
           success = true;
         }
@@ -140,8 +144,6 @@ inode_open (block_sector_t sector)
   inode->open_cnt = 1;
   inode->deny_write_cnt = 0;
   inode->removed = false;
-  cache_get (fs_device, inode->sector, 0, (uint8_t *) &inode->data, BLOCK_SECTOR_SIZE);
-  // block_read (fs_device, inode->sector, &inode->data);
   return inode;
 }
 
@@ -171,6 +173,9 @@ inode_close (struct inode *inode)
   if (inode == NULL)
     return;
 
+  struct inode_disk inode_disk;
+  cache_get (fs_device, inode->sector, 0, (uint8_t *)&inode_disk,
+             BLOCK_SECTOR_SIZE);
   /* Release resources if this was the last opener. */
   if (--inode->open_cnt == 0)
     {
@@ -181,8 +186,8 @@ inode_close (struct inode *inode)
       if (inode->removed)
         {
           free_map_release (inode->sector, 1);
-          free_map_release (inode->data.start,
-                            bytes_to_sectors (inode->data.length));
+          free_map_release (inode_disk.start,
+                            bytes_to_sectors (inode_disk.length));
         }
 
       free (inode);
@@ -227,25 +232,6 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
       cache_get (fs_device, sector_idx, sector_ofs, buffer + bytes_read,
                  chunk_size);
       
-      // if (sector_ofs == 0 && chunk_size == BLOCK_SECTOR_SIZE)
-      //   {
-      //     /* Read full sector directly into caller's buffer. */
-      //     block_read (fs_device, sector_idx, buffer + bytes_read);
-      //   }
-      // else
-      //   {
-      //     /* Read sector into bounce buffer, then partially copy
-      //        into caller's buffer. */
-      //     if (bounce == NULL)
-      //       {
-      //         bounce = malloc (BLOCK_SECTOR_SIZE);
-      //         if (bounce == NULL)
-      //           break;
-      //       }
-      //     block_read (fs_device, sector_idx, bounce);
-      //     memcpy (buffer + bytes_read, bounce + sector_ofs, chunk_size);
-      //   }
-
       /* Advance. */
       size -= chunk_size;
       offset += chunk_size;
@@ -267,7 +253,6 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
 {
   const uint8_t *buffer = buffer_;
   off_t bytes_written = 0;
-  // uint8_t *bounce = NULL;
 
   if (inode->deny_write_cnt)
     return 0;
@@ -290,38 +275,12 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
 
       cache_put (fs_device, sector_idx, sector_ofs, 
                  buffer + bytes_written, chunk_size);
-      // if (sector_ofs == 0 && chunk_size == BLOCK_SECTOR_SIZE)
-      //   {
-      //     /* Write full sector directly to disk. */
-      //     block_write (fs_device, sector_idx, buffer + bytes_written);
-      //   }
-      // else
-      //   {
-      //     /* We need a bounce buffer. */
-      //     if (bounce == NULL)
-      //       {
-      //         bounce = malloc (BLOCK_SECTOR_SIZE);
-      //         if (bounce == NULL)
-      //           break;
-      //       }
-
-      //     /* If the sector contains data before or after the chunk
-      //        we're writing, then we need to read in the sector
-      //        first.  Otherwise we start with a sector of all zeros. */
-      //     if (sector_ofs > 0 || chunk_size < sector_left)
-      //       block_read (fs_device, sector_idx, bounce);
-      //     else
-      //       memset (bounce, 0, BLOCK_SECTOR_SIZE);
-      //     memcpy (bounce + sector_ofs, buffer + bytes_written, chunk_size);
-      //     block_write (fs_device, sector_idx, bounce);
-      //   }
 
       /* Advance. */
       size -= chunk_size;
       offset += chunk_size;
       bytes_written += chunk_size;
     }
-  // free (bounce);
 
   return bytes_written;
 }
@@ -350,9 +309,8 @@ inode_allow_write (struct inode *inode)
 off_t
 inode_length (const struct inode *inode)
 {
-  return inode->data.length;
-  // int length;
-  // cache_get (fs_device, inode->sector, offsetof (struct inode_disk, length),
-  //            length, sizeof(length));
-  // return length;
+  int length;
+  cache_get (fs_device, inode->sector, offsetof (struct inode_disk, length),
+             (uint8_t *)&length, sizeof(length));
+  return length;
 }
