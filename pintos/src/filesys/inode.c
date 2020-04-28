@@ -11,14 +11,18 @@
 /* Identifies an inode. */
 #define INODE_MAGIC 0x494e4f44
 
+#define DIRECT_PTR_SIZE 12
+
 /* On-disk inode.
    Must be exactly BLOCK_SECTOR_SIZE bytes long. */
 struct inode_disk
   {
-    block_sector_t start;               /* First data sector. */
-    off_t length;                       /* File size in bytes. */
-    unsigned magic;                     /* Magic number. */
-    uint32_t unused[125];               /* Not used. */
+    off_t length;                               /* File size in bytes. */
+    block_sector_t direct_ptr[DIRECT_PTR_SIZE]; /* Inode direct pointer. */
+    block_sector_t indirect_ptr;                /* Inode indirect pointer. */     
+    block_sector_t dbl_direct_ptr;              /* Inode double direct pointer. */
+    unsigned magic;                             /* Magic number. */
+    uint32_t unused[112];                       /* Not used. */
   };
 
 /* Returns the number of sectors to allocate for an inode SIZE
@@ -92,22 +96,23 @@ inode_create (block_sector_t sector, off_t length)
       size_t sectors = bytes_to_sectors (length);
       disk_inode->length = length;
       disk_inode->magic = INODE_MAGIC;
-      if (free_map_allocate (sectors, &disk_inode->start))
-        {
-          cache_put (fs_device, sector, 0, (uint8_t *) disk_inode,
-                     BLOCK_SECTOR_SIZE);
-          if (sectors > 0)
-            {
-              static char zeros[BLOCK_SECTOR_SIZE];
-              size_t i;
+      // assign on-disk inode and initial length.
+    //   if (free_map_allocate (sectors, &disk_inode->start))
+    //     {
+    //       cache_put (fs_device, sector, 0, (uint8_t *) disk_inode,
+    //                  BLOCK_SECTOR_SIZE);
+    //       if (sectors > 0)
+    //         {
+    //           static char zeros[BLOCK_SECTOR_SIZE];
+    //           size_t i;
 
-              for (i = 0; i < sectors; i++)
-                cache_put (fs_device, disk_inode->start + i, 0,
-                          (const uint8_t *) zeros, BLOCK_SECTOR_SIZE);
-            }
-          success = true;
-        }
-      free (disk_inode);
+    //           for (i = 0; i < sectors; i++)
+    //             cache_put (fs_device, disk_inode->start + i, 0,
+    //                       (const uint8_t *) zeros, BLOCK_SECTOR_SIZE);
+    //         }
+    //       success = true;
+    //     }
+    //   free (disk_inode);
     }
   return success;
 }

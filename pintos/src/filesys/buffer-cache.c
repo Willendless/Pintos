@@ -28,6 +28,7 @@ static void put_buffer (cache_entry_t *entry,  off_t sector_ofs, const uint8_t *
                         off_t size);
 static bool get_cache_entry (block_sector_t sector, cache_entry_t **entry);
 
+/* Init buffer cache. */
 void
 cache_init (void)
 {
