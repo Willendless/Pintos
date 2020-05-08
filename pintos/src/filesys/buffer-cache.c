@@ -55,7 +55,7 @@ cache_entry_init (void)
 
 int
 cache_get (struct block* block, block_sector_t sector, off_t sector_ofs,
-          uint8_t *buffer, off_t size)
+          void *buffer, off_t size)
 {
   ASSERT (sector_ofs + size <= BLOCK_SECTOR_SIZE);
   cache_entry_t *hit_entry;
@@ -74,7 +74,7 @@ cache_get (struct block* block, block_sector_t sector, off_t sector_ofs,
 
 int
 cache_put (struct block *block, block_sector_t sector, off_t sector_ofs,
-           const uint8_t *buffer, off_t size)
+           const void *buffer, off_t size)
 {
   cache_entry_t *hit_entry;
   if (get_cache_entry (sector, &hit_entry)) {
