@@ -24,5 +24,6 @@ int syscall_write (int, const void*, unsigned);
 void syscall_seek (int, unsigned);
 unsigned syscall_tell (int);
 void syscall_close (int);
+bool syscall_mkdir (const char*);
 
 #endif /* userprog/syscall.h */

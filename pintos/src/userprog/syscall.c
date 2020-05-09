@@ -114,6 +114,7 @@ syscall_handler (struct intr_frame *f)
     case SYS_FILESIZE:
     case SYS_TELL:
     case SYS_CLOSE:
+    case SYS_MKDIR:
       /* these cases have one argument */
       bad_args = !verify_addr (args + 4, sizeof(uint32_t*));
       break;
@@ -182,22 +183,29 @@ syscall_handler (struct intr_frame *f)
     case SYS_CLOSE:
       syscall_close (args[1]);
       break;
+    case SYS_MKDIR:
+      break;
+    default:
+      ASSERT (false);
     }
 }
 
 /* process control syscalls */
 
-int syscall_practice (int arg) 
+int
+syscall_practice (int arg) 
 {
   return arg + 1;
 }
 
-void syscall_halt () 
+void
+syscall_halt () 
 {
   shutdown_power_off();
 }
 
-void syscall_exit (int status)
+void
+syscall_exit (int status)
 {
   struct thread *t = thread_current();
   printf ("%s: exit(%d)\n", t->name, status);
@@ -206,7 +214,8 @@ void syscall_exit (int status)
 }
 
 
-tid_t syscall_exec (const char* cmd_line)
+tid_t
+syscall_exec (const char* cmd_line)
 {
   tid_t tid = -1;
   if (!verify_str(cmd_line))
@@ -215,7 +224,8 @@ tid_t syscall_exec (const char* cmd_line)
   return tid;
 }
 
-int syscall_wait (tid_t tid)
+int
+syscall_wait (tid_t tid)
 {
   int exit_code = 0;
   exit_code = process_wait (tid);
@@ -224,7 +234,8 @@ int syscall_wait (tid_t tid)
 
 /* file operations syscalls */
 
-bool syscall_create (const char *file, unsigned initial_size)
+bool
+syscall_create (const char *file, unsigned initial_size)
 {
   bool result = false;
   if(!verify_str(file))
@@ -235,7 +246,8 @@ bool syscall_create (const char *file, unsigned initial_size)
   return result;
 }
 
-bool syscall_remove (const char *file)
+bool
+syscall_remove (const char *file)
 {
   bool result = false;
   if(!verify_str(file))
@@ -246,7 +258,8 @@ bool syscall_remove (const char *file)
   return result;
 }
 
-int syscall_open (const char *file)
+int
+syscall_open (const char *file)
 {
   struct file *f;
   int fd = 2;
@@ -272,7 +285,8 @@ int syscall_open (const char *file)
   return fd;
 }
 
-int syscall_filesize (int fd)
+int
+syscall_filesize (int fd)
 {
   int result = -1;
   struct file *f;
@@ -285,7 +299,8 @@ int syscall_filesize (int fd)
   return result;
 }
 
-int syscall_read (int fd, void* buffer, unsigned size)
+int
+syscall_read (int fd, void* buffer, unsigned size)
 {
   int read_len = -1;
   struct thread *t = thread_current ();
@@ -315,7 +330,8 @@ int syscall_read (int fd, void* buffer, unsigned size)
   return read_len;
 }
 
-int syscall_write (int fd, const void* buffer, unsigned size) 
+int
+syscall_write (int fd, const void* buffer, unsigned size) 
 {
   int write_len = -1;
   struct thread *t = thread_current ();
@@ -343,7 +359,8 @@ int syscall_write (int fd, const void* buffer, unsigned size)
   return write_len;
 }
 
-void syscall_seek (int fd, unsigned position)
+void
+syscall_seek (int fd, unsigned position)
 {
   struct file *f;
   if (!verify_fd (fd) || fd == 0 || fd == 1)
@@ -354,7 +371,8 @@ void syscall_seek (int fd, unsigned position)
   lock_release (&fs_lock);
 }
 
-unsigned syscall_tell (int fd)
+unsigned
+syscall_tell (int fd)
 {
   struct file *f;
   unsigned offset;
@@ -367,7 +385,8 @@ unsigned syscall_tell (int fd)
   return offset;
 }
 
-void syscall_close (int fd)
+void
+syscall_close (int fd)
 {
   struct file *f;
   if (!verify_fd (fd) || fd == 0 || fd == 1)
@@ -377,4 +396,12 @@ void syscall_close (int fd)
   file_close (f);
   lock_release (&fs_lock);
   thread_current ()->open_files[fd] = NULL;
+}
+
+bool
+syscall_mkdir (const char *dir)
+{
+  if (!verify_str (dir))
+    return false;
+  return filesys_mkdir(dir);
 }

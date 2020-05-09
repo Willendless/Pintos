@@ -127,6 +127,7 @@ struct thread
     struct wait_status *wait_status;    /* This thread's wait_status (using malloc) */
     struct file *open_files[MAX_OPEN_FILES];    /* Files this thread has opened */
     struct file *this_executable;       /* File of this executable, if this thread is loaded from a executable */
+    struct dir *cwd;
 #endif
 
     /* Owned by thread.c. */
