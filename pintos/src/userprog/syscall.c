@@ -258,9 +258,7 @@ syscall_create (const char *file, unsigned initial_size)
   bool result = false;
   if(!verify_str(file))
     syscall_exit(-1);
-  lock_acquire (&fs_lock);
   result = filesys_create (file, initial_size);
-  lock_release (&fs_lock);
   return result;
 }
 
@@ -270,9 +268,7 @@ syscall_remove (const char *file)
   bool result = false;
   if(!verify_str(file))
     syscall_exit(-1);
-  lock_acquire (&fs_lock);
   result = filesys_remove (file);
-  lock_release (&fs_lock);
   return result;
 }
 
@@ -283,9 +279,7 @@ syscall_open (const char *file)
   int fd = 2;
   if(!verify_str(file))
     syscall_exit(-1);
-  lock_acquire (&fs_lock);
   f = filesys_open (file);
-  lock_release (&fs_lock);
   
   if (f == NULL)
     return -1;
@@ -294,9 +288,7 @@ syscall_open (const char *file)
   if (fd < MAX_OPEN_FILES)
     thread_current ()->open_files[fd] = f;
   else {
-    lock_acquire (&fs_lock);
     filesys_close(f);
-    lock_release (&fs_lock);
     fd = -1;
   }
     
@@ -311,9 +303,7 @@ syscall_filesize (int fd)
   if (!verify_fd (fd) || fd == 0 || fd == 1)
     syscall_exit (-1);
   f = thread_current ()->open_files[fd];
-  lock_acquire (&fs_lock);
   result = filesys_length (f);
-  lock_release (&fs_lock);
   return result;
 }
 
@@ -345,9 +335,7 @@ syscall_read (int fd, void* buffer, unsigned size)
           return 0;
         }
         struct file *file = f->ptr.file;
-        lock_acquire (&fs_lock);
         read_len = file_read (file, buffer, size);
-        lock_release (&fs_lock);
     }
   return read_len;
 }
@@ -378,9 +366,7 @@ syscall_write (int fd, const void* buffer, unsigned size)
           return -1;
         }
         struct file *file = f->ptr.file;
-        lock_acquire (&fs_lock);
         write_len = file_write (file, buffer, size);
-        lock_release (&fs_lock);
     }
   return write_len;
 }
@@ -392,9 +378,7 @@ syscall_seek (int fd, unsigned position)
   if (!verify_fd (fd) || fd == 0 || fd == 1)
     return;
   f = thread_current ()->open_files[fd]->ptr.file;
-  lock_acquire (&fs_lock);
   file_seek (f, position);
-  lock_release (&fs_lock);
 }
 
 unsigned
@@ -405,9 +389,7 @@ syscall_tell (int fd)
   if (!verify_fd (fd) || fd == 0 || fd == 1)
     syscall_exit (-1);
   f = thread_current ()->open_files[fd];
-  lock_acquire (&fs_lock);
   offset = filesys_tell (f);
-  lock_release (&fs_lock);
   return offset;
 }
 
@@ -418,9 +400,7 @@ syscall_close (int fd)
   if (!verify_fd (fd) || fd == 0 || fd == 1)
     return;
   f = thread_current ()->open_files[fd];
-  lock_acquire (&fs_lock);
   filesys_close (f);
-  lock_release (&fs_lock);
   thread_current ()->open_files[fd] = NULL;
 }
 
