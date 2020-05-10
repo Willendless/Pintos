@@ -12,8 +12,9 @@
 #include "tests/main.h"
 #include "threads/fixed-point.h"
 
-#define FILE_SIZE 102400
+#define FILE_SIZE 10240
 static char buf[FILE_SIZE];
+static char rbuf[FILE_SIZE];
 
 static void
 write_some_bytes (const char *file_name, int fd, const char *buf, size_t *ofs)
@@ -38,7 +39,7 @@ read_some_bytes (const char *file_name, int fd, char *buf, size_t *ofs)
 {
   if (*ofs < FILE_SIZE)
     {
-      size_t block_size = random_ulong () % (FILE_SIZE / 8) + 1;
+      size_t block_size = random_ulong () % (FILE_SIZE / 8) + 128;
       size_t ret_val;
       if (block_size > FILE_SIZE - *ofs)
         block_size = FILE_SIZE - *ofs;
@@ -64,50 +65,54 @@ test_main (void)
   random_init (0);
   random_bytes (buf, sizeof buf);
 
-  CHECK (create ("cache-hit", 0), "create \"cache-hit\"");
-  CHECK ((fd = open ("cache-hit")) > 1, "open \"cache-hit\"");
+  CHECK (create ("cachehit", 0), "create \"cachehit\"");
+  CHECK ((fd = open ("cachehit")) > 1, "open \"cachehit\"");
 
-  msg ("init \"cache-hit\"");
+  msg ("init \"cachehit\"");
   while (w_ofs < FILE_SIZE)
     {
-      write_some_bytes ("cache-hit", fd, buf, &w_ofs);
+      write_some_bytes ("cachehit", fd, buf, &w_ofs);
     }
   
-  msg ("close \"cache-hit\"");
+  msg ("close \"cachehit\"");
   close (fd);
 
+  msg ("flush \"cachehit\"");
   cache_flush ();
 
-  CHECK ((fd = open ("cache-hit")) > 1, "open \"cache-hit\"");
-  msg ("cold read \"cache-hit\"");
+  cache_stat (&hit_cnt, &read_cnt, &write_cnt);
+  CHECK ((hit_cnt == 0), "hit_cnt 0 after flush");
+  CHECK ((read_cnt == 0), "read_cnt 0 after flush");
+  CHECK ((write_cnt == 0), "write_cnt 0 after flush");
+
+  CHECK ((fd = open ("cachehit")) > 1, "open \"cachehit\"");
+  msg ("cold read \"cachehit\"");
   while (r_ofs < FILE_SIZE)
     {
-      read_some_bytes ("cache-hit", fd, buf, &r_ofs);
+      read_some_bytes ("cachehit", fd, rbuf, &r_ofs);
     }
+  check_file ("cachehit", rbuf, 10240);
 
   cache_stat (&hit_cnt, &read_cnt, &write_cnt);
   cold_hit_rate = hit_cnt * 100 / (read_cnt + write_cnt);
 
-  msg ("cold-cache stat:");
-  msg ("hit rate: %d%%, hit cnt: %d, read cnt: %d, write cnt: %d", 
-       cold_hit_rate, hit_cnt, read_cnt, write_cnt);
-  
+  msg ("close \"cachehit\"");
   close (fd);
 
-  CHECK ((fd = open ("cache-hit")) > 1, "open \"cache-hit\"");
-  msg ("hot read \"cache-hit\"");
+  CHECK ((fd = open ("cachehit")) > 1, "open \"cachehit\"");
+  msg ("hot read \"cachehit\"");
   r_ofs = 0;
   while (r_ofs < FILE_SIZE)
     {
-      read_some_bytes ("cache-hit", fd, buf, &r_ofs);
+      read_some_bytes ("cachehit", fd, buf, &r_ofs);
     }
+  check_file ("cachehit", rbuf, 10240);
 
   cache_stat (&hit_cnt, &read_cnt, &write_cnt);
   hot_hit_rate = hit_cnt * 100 / (read_cnt + write_cnt);
 
-  msg ("hot cache rate:");
-  msg ("hit rate: %d%%, hit cnt: %d, read cnt: %d, write cnt: %d", 
-       hot_hit_rate, hit_cnt, read_cnt, write_cnt);
+  msg ("close \"cachehit\"");
+  close (fd);
 
-  CHECK (cold_hit_rate < hot_hit_rate, "compare hit rate");
+  CHECK (cold_hit_rate < hot_hit_rate, "compare hit rate (must better)");
 }

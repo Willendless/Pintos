@@ -169,6 +169,9 @@ loop:
           lock_release (&en->lock);
           goto loop;
         }
+        lock_acquire (&hit_cnt_lock);
+        ++hit_cnt;
+        lock_release (&hit_cnt_lock);
         /* Move to head of cache list. */
         list_remove (&en->elem);
         list_push_front (&cache_list, &en->elem);
@@ -210,10 +213,13 @@ cache_flush (struct block* block)
       if (en->valid && en->modified) {
         block_write (block, en->sector, en->buffer);
         en->modified = false;
-        en->modified = false;
+        en->valid = false;
       }
     }
   lock_release (&cache_lock);
+  lock_acquire (&hit_cnt_lock);
+  hit_cnt = 0;
+  lock_release (&hit_cnt_lock);
   lock_acquire (&read_cnt_lock);
   read_cnt = 0;
   lock_release (&read_cnt_lock);
