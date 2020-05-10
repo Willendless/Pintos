@@ -95,6 +95,8 @@ start_process (void *file_name_)
     success = false;
     goto DONE;
   }
+
+  // printf ("%s\n", file_name);
     
   success = load (file_name, &if_.eip, &if_.esp);
 
