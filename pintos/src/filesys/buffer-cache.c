@@ -57,6 +57,8 @@ int
 cache_get (struct block* block, block_sector_t sector, off_t sector_ofs,
           void *buffer, off_t size)
 {
+  if (sector_ofs + size > BLOCK_SECTOR_SIZE)
+    printf ("size violate: %d\n", sector_ofs + size);
   ASSERT (sector_ofs + size <= BLOCK_SECTOR_SIZE);
   cache_entry_t *hit_entry;
   if (get_cache_entry (sector, &hit_entry)) {

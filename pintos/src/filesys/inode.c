@@ -99,7 +99,7 @@ byte_to_sector (const struct inode *inode, off_t pos)
   if (index < INDIRECT_PTR_SIZE) {
     cache_get (fs_device, inode->sector, offsetof (struct inode_disk, indirect_ptr),
               (void *)&indirect_ptr, sizeof(block_sector_t));
-    cache_get (fs_device, indirect_ptr, offsetof (struct ptr_block, ptr[index]),
+    cache_get (fs_device, indirect_ptr, index * sizeof (block_sector_t),
                (void *)&ptr, sizeof(block_sector_t));
     return ptr;
   }
@@ -107,9 +107,9 @@ byte_to_sector (const struct inode *inode, off_t pos)
   if (index < DBL_INDIRECT_PTR_SIZE) {
     cache_get (fs_device, inode->sector, offsetof (struct inode_disk, dbl_indirect_ptr),
               (void *)&dbl_indirect_ptr, sizeof(block_sector_t));
-    cache_get (fs_device, dbl_indirect_ptr, index / BLOCK_SECTOR_SIZE * sizeof (block_sector_t),
+    cache_get (fs_device, dbl_indirect_ptr, index / PTR_BLOCK_SIZE * sizeof (block_sector_t),
               (void *)&indirect_ptr, sizeof(block_sector_t));
-    cache_get (fs_device, indirect_ptr, index % BLOCK_SECTOR_SIZE * sizeof (block_sector_t),
+    cache_get (fs_device, indirect_ptr, (index % PTR_BLOCK_SIZE) * sizeof (block_sector_t),
               (void *)&ptr, sizeof(block_sector_t));
     return ptr;
   }
