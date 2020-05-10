@@ -197,3 +197,27 @@ sbrk (intptr_t increment)
   /* Homework 5, Part B: YOUR CODE HERE */
   return NULL;
 }
+
+void
+cache_flush (void)
+{
+  syscall0 (SYS_CACHE_FLUSH);
+}
+
+void
+cache_stat (int *hit_cnt, int *read_cnt, int *write_cnt)
+{
+  syscall3 (SYS_CACHE_STAT, hit_cnt, read_cnt, write_cnt);
+}
+
+unsigned long long
+bwcnt (void)
+{
+  return syscall0 (SYS_BWCNT);
+}
+
+unsigned long long
+brcnt (void)
+{
+  return syscall0 (SYS_BRCNT);
+}

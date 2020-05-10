@@ -8,9 +8,11 @@
 #include "devices/shutdown.h"
 #include "filesys/filesys.h"
 #include "filesys/file.h"
+#include "filesys/buffer-cache.h"
 #include "userprog/process.h"
 #include <stdbool.h>
-#include <user/syscall.h>
+
+#define READDIR_MAX_LEN 14
 
 static void syscall_handler (struct intr_frame *);
 static bool verify_addr (const void *, size_t);
@@ -104,6 +106,9 @@ syscall_handler (struct intr_frame *f)
   switch (args[0])
     {
     case SYS_HALT:
+    case SYS_CACHE_FLUSH:
+    case SYS_BWCNT:
+    case SYS_BRCNT:
       /* have no argument */
       break;
     case SYS_PRACTICE:
@@ -130,6 +135,7 @@ syscall_handler (struct intr_frame *f)
       break;
     case SYS_READ:
     case SYS_WRITE:
+    case SYS_CACHE_STAT:
       /* these cases have three arguments */
       bad_args = !verify_addr (args + 4, 3*sizeof(uint32_t*));
       break;
@@ -203,6 +209,18 @@ syscall_handler (struct intr_frame *f)
     case SYS_INUMBER:
       f->eax = syscall_inumber (args[1]);
       break;
+    case SYS_CACHE_FLUSH:
+      syscall_cache_flush ();
+      break;
+    case SYS_CACHE_STAT:
+      syscall_cache_stat (args[1], args[2], args[3]);
+      break;
+    case SYS_BRCNT:
+      f->eax = syscall_brcnt ();
+      break;
+    case SYS_BWCNT:
+      f->eax = syscall_bwcnt ();
+      break;
     default:
       ASSERT (false);
     }
@@ -230,7 +248,6 @@ syscall_exit (int status)
   t->wait_status->exit_code = status;
   thread_exit();
 }
-
 
 tid_t
 syscall_exec (const char* cmd_line)
@@ -448,4 +465,32 @@ syscall_inumber (int fd)
     syscall_exit (-1);
   
   return filesys_inumber (thread_current ()->open_files[fd]);
+}
+
+void
+syscall_cache_flush ()
+{
+  cache_flush (fs_device);
+}
+
+void
+syscall_cache_stat (int *hit_cnt, int *read_cnt, int *write_cnt)
+{
+  if (!verify_addr (hit_cnt, sizeof (uint32_t))
+      || !verify_addr (read_cnt, sizeof (uint32_t))
+      || !verify_addr (write_cnt, sizeof (uint32_t)))
+      syscall_exit (-1);
+  cache_stat (hit_cnt, read_cnt, write_cnt);
+}
+
+unsigned long long
+syscall_brcnt ()
+{
+  return block_read_cnt (fs_device);
+}
+
+unsigned long long
+syscall_bwcnt ()
+{
+  return block_write_cnt (fs_device);
 }

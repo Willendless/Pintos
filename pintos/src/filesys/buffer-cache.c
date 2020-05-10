@@ -7,8 +7,17 @@
 /* Global buffer cache lock. */
 static struct lock cache_lock;
 
-/* Second chance list data structure. */
+/* LRU list data structure. */
 static struct list cache_list;  /* LRU list */
+
+static int hit_cnt;
+static struct lock hit_cnt_lock;
+
+static int read_cnt;
+static struct lock read_cnt_lock;
+
+static int write_cnt;
+static struct lock write_cnt_lock;
 
 typedef struct {
     struct list_elem elem;
@@ -35,6 +44,9 @@ cache_init (void)
   int i;
   lock_init (&cache_lock);
   list_init (&cache_list);
+  lock_init (&hit_cnt_lock);
+  lock_init (&read_cnt_lock);
+  lock_init (&write_cnt_lock);
   for (i = 0; i < CACHE_SIZE; ++i)
     list_push_back (&cache_list, &cache_entry_init ()->elem);
 }
@@ -71,6 +83,9 @@ cache_get (struct block* block, block_sector_t sector, off_t sector_ofs,
     hit_entry->modified = false;
     get_buffer (hit_entry, sector_ofs, buffer, size);
   }
+  lock_acquire (&read_cnt_lock);
+  ++read_cnt;
+  lock_release (&read_cnt_lock);
   return 0;
 }
 
@@ -96,6 +111,9 @@ cache_put (struct block *block, block_sector_t sector, off_t sector_ofs,
     hit_entry->modified = true;
     put_buffer (hit_entry, sector_ofs, buffer, size);
   }
+  lock_acquire (&write_cnt_lock);
+  ++write_cnt;
+  lock_release (&write_cnt_lock);
   return 0;
 }
 
@@ -184,6 +202,7 @@ void
 cache_flush (struct block* block)
 {
   struct list_elem *e;
+  lock_acquire (&cache_lock);
   for (e = list_begin (&cache_list); e != list_end (&cache_list);
        e = list_next (e))
     {
@@ -191,6 +210,31 @@ cache_flush (struct block* block)
       if (en->valid && en->modified) {
         block_write (block, en->sector, en->buffer);
         en->modified = false;
+        en->modified = false;
       }
     }
+  lock_release (&cache_lock);
+  lock_acquire (&read_cnt_lock);
+  read_cnt = 0;
+  lock_release (&read_cnt_lock);
+  lock_acquire (&write_cnt_lock);
+  write_cnt = 0;
+  lock_release (&write_cnt_lock);
+}
+
+void
+cache_stat (uint32_t *hit_cnt_,
+            uint32_t *read_cnt_, uint32_t *write_cnt_)
+{
+  lock_acquire (&hit_cnt_lock);
+  *hit_cnt_ = hit_cnt;
+  lock_release (&hit_cnt_lock);
+
+  lock_acquire (&read_cnt_lock);
+  *read_cnt_ = read_cnt;
+  lock_release (&read_cnt_lock);
+
+  lock_acquire (&write_cnt_lock);
+  *write_cnt_ = write_cnt;
+  lock_release (&write_cnt_lock);
 }

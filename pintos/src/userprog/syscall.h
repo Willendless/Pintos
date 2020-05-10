@@ -30,4 +30,11 @@ bool syscall_readdir (int fd, char *name);
 bool syscall_isdir (int fd);
 int syscall_inumber (int fd);
 
+/* buffer cache backend. */
+void syscall_cache_flush (void);
+void syscall_cache_stat (int *, int *, int *);
+
+unsigned long long syscall_bwcnt (void);
+unsigned long long syscall_brcnt (void);
+
 #endif /* userprog/syscall.h */

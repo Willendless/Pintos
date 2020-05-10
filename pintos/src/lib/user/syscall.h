@@ -50,4 +50,10 @@ int inumber (int fd);
 /* Homework 5, Part B. */
 void* sbrk (intptr_t increment);
 
+/* buffer cache back end. */
+void cache_flush (void);
+void cache_stat (int *, int *, int *);
+unsigned long long bwcnt (void);
+unsigned long long brcnt (void);
+
 #endif /* lib/user/syscall.h */
