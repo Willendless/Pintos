@@ -25,5 +25,9 @@ void syscall_seek (int, unsigned);
 unsigned syscall_tell (int);
 void syscall_close (int);
 bool syscall_mkdir (const char*);
+bool syscall_chdir (const char*);
+bool syscall_readdir (int fd, char *name);
+bool syscall_isdir (int fd);
+int syscall_inumber (int fd);
 
 #endif /* userprog/syscall.h */

@@ -22,12 +22,29 @@ struct dir_entry
     bool in_use;                        /* In use or free? */
   };
 
+static bool is_dir_empty (struct inode *inode);
+
+/* Init the root directory. */
+bool
+dir_root_init ()
+{
+  struct dir *root = NULL;
+  bool success = dir_create (ROOT_DIR_SECTOR, 2)
+                 && (root = dir_open_root ()) != NULL
+                 && dir_add (root, ".", ROOT_DIR_SECTOR)
+                 && dir_add (root, "..", ROOT_DIR_SECTOR);
+  
+  dir_close (root);
+  return success;
+}
+
+
 /* Creates a directory with space for ENTRY_CNT entries in the
    given SECTOR.  Returns true if successful, false on failure. */
 bool
 dir_create (block_sector_t sector, size_t entry_cnt)
 {
-  return inode_create (sector, entry_cnt * sizeof (struct dir_entry));
+  return inode_create (sector, entry_cnt * sizeof (struct dir_entry), true);
 }
 
 /* Opens and returns the directory for the given INODE, of which
@@ -133,6 +150,20 @@ dir_lookup (const struct dir *dir, const char *name,
   return *inode != NULL;
 }
 
+off_t
+dir_tell (struct dir *dir)
+{
+  ASSERT (dir != NULL);
+  return dir->pos;
+}
+
+int
+dir_get_inumber (struct dir *dir)
+{
+  ASSERT (dir != NULL);
+  return inode_get_inumber (dir->inode);
+}
+
 /* Adds a file named NAME to DIR, which must not already contain a
    file by that name.  The file's inode is in sector
    INODE_SECTOR.
@@ -179,6 +210,14 @@ dir_add (struct dir *dir, const char *name, block_sector_t inode_sector)
   return success;
 }
 
+bool
+dir_equals (struct dir *dira, struct dir *dirb)
+{
+  ASSERT (dira != NULL && dirb != NULL);
+  return dira->inode == dirb->inode;
+}
+
+
 /* Removes any entry for NAME in DIR.
    Returns true if successful, false on failure,
    which occurs only if there is no file with the given NAME. */
@@ -202,6 +241,11 @@ dir_remove (struct dir *dir, const char *name)
   if (inode == NULL)
     goto done;
 
+  if (is_inode_dir (inode)
+      && (!is_dir_empty (inode) || inode_open_cnt (inode) > 1)) {
+    inode_close (inode);
+    return false;
+  }
   /* Erase directory entry. */
   e.in_use = false;
   if (inode_write_at (dir->inode, &e, sizeof e, ofs) != sizeof e)
@@ -227,7 +271,7 @@ dir_readdir (struct dir *dir, char name[NAME_MAX + 1])
   while (inode_read_at (dir->inode, &e, sizeof e, dir->pos) == sizeof e)
     {
       dir->pos += sizeof e;
-      if (e.in_use)
+      if (e.in_use && strcmp (e.name, ".") && strcmp (e.name, ".."))
         {
           strlcpy (name, e.name, NAME_MAX + 1);
           return true;
@@ -235,3 +279,28 @@ dir_readdir (struct dir *dir, char name[NAME_MAX + 1])
     }
   return false;
 }
+
+off_t
+dir_length (struct dir *dir)
+{
+  ASSERT (dir != NULL);
+  return inode_length (dir->inode);
+}
+
+static bool
+is_dir_empty (struct inode *inode)
+{
+  struct dir_entry e;
+  size_t ofs;
+
+  ASSERT (inode != NULL);
+
+  for (ofs = 0; inode_read_at (inode, &e, sizeof e, ofs) == sizeof e;
+       ofs += sizeof e)
+    if (e.in_use && strcmp (e.name, ".") && strcmp (e.name, ".."))
+      {
+        return false;
+      }
+  return true;
+}
+

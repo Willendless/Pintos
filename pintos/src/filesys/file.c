@@ -57,7 +57,15 @@ file_close (struct file *file)
 struct inode *
 file_get_inode (struct file *file)
 {
+  ASSERT (file != NULL);
   return file->inode;
+}
+
+int
+file_get_inumber (struct file *file)
+{
+  ASSERT (file != NULL);
+  return inode_get_inumber (file->inode);
 }
 
 /* Reads SIZE bytes from FILE into BUFFER,

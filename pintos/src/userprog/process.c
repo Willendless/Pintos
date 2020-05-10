@@ -273,7 +273,7 @@ process_exit (void)
   // Close opened files
   for (i = 2; i < MAX_OPEN_FILES; ++i) {
     if (cur->open_files[i] != NULL)
-      file_close (cur->open_files[i]);
+      filesys_close (cur->open_files[i]);
   }
 
   // Wake up a waiting parent
@@ -375,7 +375,8 @@ load (const char *file_name, void (**eip) (void), void **esp)
 {
   struct thread *t = thread_current ();
   struct Elf32_Ehdr ehdr;
-  struct file *file = NULL;
+  struct FILE *f = NULL;
+  struct file *file;
   off_t file_ofs;
   bool success = false;
   int i;
@@ -387,14 +388,15 @@ load (const char *file_name, void (**eip) (void), void **esp)
   process_activate ();
 
   /* Open executable file. */
-  file = filesys_open (file_name);
-  if (file == NULL)
+  f = filesys_open (file_name);
+  if (f == NULL || f->is_dir)
   {
     printf ("load: %s: open failed\n", file_name);
     t->this_executable = NULL;
     goto done;
   }
 
+  file = f->ptr.file;
   /* Protect running program and deny write */
   lock_acquire(&fs_lock);
   file_deny_write(file);

@@ -23,12 +23,13 @@
 struct inode_disk
   {
     off_t length;                               /* File size in bytes. */
+    uint32_t is_dir;                               /* If file is a directory. */
     uint32_t sectors;                              /* Sector num in bytes. */
     block_sector_t direct_ptr[DIRECT_PTR_SIZE]; /* Inode direct pointer. */
     block_sector_t indirect_ptr;                /* Inode indirect pointer. */     
     block_sector_t dbl_indirect_ptr;              /* Inode double direct pointer. */
     unsigned magic;                             /* Magic number. */
-    uint32_t unused[111];                       /* Not used. */
+    uint32_t unused[110];                       /* Not used. */
   };
 
 /* On-disk ptr stored block. 
@@ -40,8 +41,10 @@ struct ptr_block
   };
 
 static void inode_sector_release (block_sector_t sector, int begin, int end, int level);
-static int inode_extend_sector (block_sector_t sector, off_t sector_ofs);
+static int inode_extend_length (block_sector_t inode_sector, size_t lengh);
 static void inode_sector_remove (struct inode *inode);
+static bool inode_extend_sectors (block_sector_t inode_sector, int num);
+static int inode_extend_sector (block_sector_t sector, off_t sector_ofs);
 
 
 /* Returns the number of sectors to allocate for an inode SIZE
@@ -61,6 +64,7 @@ struct inode
     bool removed;                       /* True if deleted, false otherwise. */
     int deny_write_cnt;                 /* 0: writes ok, >0: deny writes. */
     struct lock inode_lock;             /* Guard inode. */
+    int is_dir;                         /* file type. */
   };
 
 
@@ -113,11 +117,50 @@ byte_to_sector (const struct inode *inode, off_t pos)
   return -1;
 }
 
+
+/** Try extend inode legth by LENGTH.
+ *  Return the lengh actually extended. */
+static int
+inode_extend_length (block_sector_t inode_sector, size_t length)
+{
+  int old_length, new_length;
+  
+  cache_get (fs_device, inode_sector,
+             offsetof (struct inode_disk, length),
+             &old_length, sizeof(int));
+
+  int sector_left = (old_length + BLOCK_SECTOR_SIZE - 1)
+                    / BLOCK_SECTOR_SIZE * BLOCK_SECTOR_SIZE - old_length;
+  if (sector_left >= (int)length) {
+    new_length = old_length + length;
+    cache_put (fs_device, inode_sector,
+               offsetof (struct inode_disk, length),
+               &new_length, sizeof(int));
+    return length;
+  }
+
+  length -= sector_left;
+  if (!inode_extend_sectors (inode_sector,
+                            (length + BLOCK_SECTOR_SIZE - 1)
+                            / BLOCK_SECTOR_SIZE)) {
+    new_length = old_length;
+  } else {
+    new_length = old_length + length;
+  }
+
+  cache_put (fs_device, inode_sector,
+             offsetof (struct inode_disk, length),
+             &new_length,
+             sizeof(int));
+  return new_length - old_length;
+}
+
+
 /* Try extend inode with num sectors.
    Return false if failed.
 */
 static bool
-inode_extend (block_sector_t inode_sector, int num)
+inode_extend_sectors (block_sector_t inode_sector, int num)
 {
   int begin, index;
   int length;
@@ -151,7 +194,7 @@ inode_extend (block_sector_t inode_sector, int num)
   index -= DIRECT_PTR_SIZE;
   if (index == 0 && allocated_size < num) {
     if (inode_extend_sector (inode_sector,
-                              offsetof (struct inode_disk, indirect_ptr)) == -1) {
+                             offsetof (struct inode_disk, indirect_ptr)) == -1) {
       inode_sector_release (inode_sector, begin, index + DIRECT_PTR_SIZE, 1);
       return false;
     }
@@ -364,12 +407,13 @@ inode_init (void)
    Returns true if successful.
    Returns false if memory or disk allocation fails. */
 bool
-inode_create (block_sector_t sector, off_t length)
+inode_create (block_sector_t sector, off_t length, bool is_dir)
 {
   struct inode_disk *disk_inode = NULL;
   bool success = false;
-  int magic = INODE_MAGIC;
+  uint32_t magic = INODE_MAGIC;
   size_t sectors = bytes_to_sectors (length);
+  uint32_t is_dir_ = is_dir ? 1 : 0; 
 
   ASSERT (length >= 0);
 
@@ -377,42 +421,19 @@ inode_create (block_sector_t sector, off_t length)
      one sector in size, and you should fix that. */
   ASSERT (sizeof *disk_inode == BLOCK_SECTOR_SIZE);
 
-  success = inode_extend (sector, sectors);
+  success = inode_extend_sectors (sector, sectors);
 
   if (success) {
     cache_put (fs_device, sector,
               offsetof(struct inode_disk, length), &length, sizeof(off_t));
     cache_put (fs_device, sector, 
-              offsetof(struct inode_disk, magic), &magic, sizeof(int));
+              offsetof(struct inode_disk, magic), &magic, sizeof(uint32_t));
     cache_put (fs_device, sector,
               offsetof(struct inode_disk, sectors), &sectors, sizeof(uint32_t));
+    cache_put (fs_device, sector,
+               offsetof(struct inode_disk, is_dir), &is_dir_, sizeof(uint32_t));
   }
   return success;
-  // disk_inode = calloc (1, sizeof *disk_inode);
-  // if (disk_inode != NULL)
-  //   {
-  //     size_t sectors = bytes_to_sectors (length);
-  //     disk_inode->length = length;
-  //     disk_inode->magic = INODE_MAGIC;
-  //     // assign on-disk inode and initial length.
-  //     success = inode_extend (&disk_inode, sectors);
-    //   if (free_map_allocate (sectors, &disk_inode->start))
-    //     {
-    //       cache_put (fs_device, sector, 0, (uint8_t *) disk_inode,
-    //                  BLOCK_SECTOR_SIZE);
-    //       if (sectors > 0)
-    //         {
-    //           static char zeros[BLOCK_SECTOR_SIZE];
-    //           size_t i;
-
-    //           for (i = 0; i < sectors; i++)
-    //             cache_put (fs_device, disk_inode->start + i, 0,
-    //                       (const uint8_t *) zeros, BLOCK_SECTOR_SIZE);
-    //         }
-    //       success = true;
-    //     }
-    //   free (disk_inode);
-    // }
 }
 
 /* Reads an inode from SECTOR
@@ -453,6 +474,10 @@ inode_open (block_sector_t sector)
   inode->deny_write_cnt = 0;
   inode->removed = false;
   lock_init(&inode->inode_lock);
+  cache_get (fs_device, sector,
+             offsetof (struct inode_disk, is_dir),
+             &inode->is_dir,
+             sizeof(int));
   return inode;
 }
 
@@ -586,27 +611,37 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
   if (inode->deny_write_cnt)
     return 0;
 
+  
+  off_t inode_left = inode_length (inode) - offset;
+  if (inode_left < 0) {
+    if (!inode_extend_length (inode->sector, -inode_left + size)) {
+      return 0;
+    }
+  } else if (size - inode_left > 0) {
+    if (!inode_extend_length (inode->sector, size - inode_left)) {
+      return 0;
+    }
+  }
+
+
   while (size > 0)
     {
       /* Sector to write, starting byte offset within sector. */
       int sector_idx = byte_to_sector (inode, offset);
-      if (sector_idx == -1) {
-        if (!inode_extend (inode->sector, 1)) {
-          break;
-        }
-        sector_idx = byte_to_sector (inode, offset);
-      }
       int sector_ofs = offset % BLOCK_SECTOR_SIZE;
 
       /* Bytes left in inode, bytes left in sector, lesser of the two. */
       off_t inode_left = inode_length (inode) - offset;
       int sector_left = BLOCK_SECTOR_SIZE - sector_ofs;
+
       int min_left = inode_left < sector_left ? inode_left : sector_left;
 
       /* Number of bytes to actually write into this sector. */
       int chunk_size = size < min_left ? size : min_left;
-      if (chunk_size <= 0)
-        break;
+      if (chunk_size <= 0) {
+        if (!inode_extend_length (inode->sector, size))
+          break;
+      }
 
       cache_put (fs_device, sector_idx, sector_ofs, 
                  buffer + bytes_written, chunk_size);
@@ -658,4 +693,20 @@ inode_size (const struct inode *inode)
   cache_get (fs_device, inode->sector, offsetof (struct inode_disk, sectors),
              (void *)&sectors, sizeof(int));
   return sectors;
+}
+
+/* Return inode type, true if directory. */
+bool
+is_inode_dir (const struct inode *inode)
+{
+  ASSERT (inode != NULL);
+
+  return inode->is_dir;
+}
+
+int
+inode_open_cnt (const struct inode *inode)
+{
+  ASSERT (inode != NULL);
+  return inode->open_cnt;
 }

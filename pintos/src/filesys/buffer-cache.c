@@ -177,3 +177,18 @@ loop:
   *entry = hit_entry;
   return hit;
 }
+
+void
+cache_flush (struct block* block)
+{
+  struct list_elem *e;
+  for (e = list_begin (&cache_list); e != list_end (&cache_list);
+       e = list_next (e))
+    {
+      cache_entry_t *en = list_entry (e, cache_entry_t, elem);
+      if (en->valid && en->modified) {
+        block_write (block, en->sector, en->buffer);
+        en->modified = false;
+      }
+    }
+}

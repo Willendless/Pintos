@@ -34,13 +34,15 @@ void
 fsutil_cat (char **argv)
 {
   const char *file_name = argv[1];
-
+  struct FILE *f;
   struct file *file;
+
   char *buffer;
 
   printf ("Printing '%s' to the console...\n", file_name);
-  file = filesys_open (file_name);
-  if (file == NULL)
+  f = filesys_open (file_name);
+  file = f->ptr.file;
+  if (f == NULL || file == NULL)
     PANIC ("%s: open failed", file_name);
   buffer = palloc_get_page (PAL_ASSERT);
   for (;;)
@@ -53,7 +55,7 @@ fsutil_cat (char **argv)
       hex_dump (pos, buffer, n, true);
     }
   palloc_free_page (buffer);
-  file_close (file);
+  filesys_close (f);
 }
 
 /* Deletes file ARGV[1]. */
@@ -113,6 +115,7 @@ fsutil_extract (char **argv UNUSED)
         printf ("ignoring directory %s\n", file_name);
       else if (type == USTAR_REGULAR)
         {
+          struct FILE *f;
           struct file *dst;
 
           printf ("Putting '%s' into the file system...\n", file_name);
@@ -120,8 +123,9 @@ fsutil_extract (char **argv UNUSED)
           /* Create destination file. */
           if (!filesys_create (file_name, size))
             PANIC ("%s: create failed", file_name);
-          dst = filesys_open (file_name);
-          if (dst == NULL)
+          f = filesys_open (file_name);
+          dst = f->ptr.file;
+          if (f == NULL || dst == NULL)
             PANIC ("%s: open failed", file_name);
 
           /* Do copy. */
@@ -138,7 +142,7 @@ fsutil_extract (char **argv UNUSED)
             }
 
           /* Finish up. */
-          file_close (dst);
+          filesys_close (f);
         }
     }
 
@@ -170,6 +174,7 @@ fsutil_append (char **argv)
 
   const char *file_name = argv[1];
   void *buffer;
+  struct FILE *f;
   struct file *src;
   struct block *dst;
   off_t size;
@@ -182,8 +187,9 @@ fsutil_append (char **argv)
     PANIC ("couldn't allocate buffer");
 
   /* Open source file. */
-  src = filesys_open (file_name);
-  if (src == NULL)
+  f = filesys_open (file_name);
+  src = f->ptr.file;
+  if (f == NULL || src == NULL)
     PANIC ("%s: open failed", file_name);
   size = file_length (src);
 
@@ -218,6 +224,6 @@ fsutil_append (char **argv)
   block_write (dst, sector, buffer + 1);
 
   /* Finish up. */
-  file_close (src);
+  filesys_close (f);
   free (buffer);
 }

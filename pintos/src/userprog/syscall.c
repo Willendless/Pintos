@@ -10,6 +10,7 @@
 #include "filesys/file.h"
 #include "userprog/process.h"
 #include <stdbool.h>
+#include <user/syscall.h>
 
 static void syscall_handler (struct intr_frame *);
 static bool verify_addr (const void *, size_t);
@@ -114,12 +115,16 @@ syscall_handler (struct intr_frame *f)
     case SYS_FILESIZE:
     case SYS_TELL:
     case SYS_CLOSE:
+    case SYS_CHDIR:
     case SYS_MKDIR:
+    case SYS_ISDIR:
+    case SYS_INUMBER:
       /* these cases have one argument */
       bad_args = !verify_addr (args + 4, sizeof(uint32_t*));
       break;
     case SYS_CREATE:
     case SYS_SEEK:
+    case SYS_READDIR:
       /* these cases have two arguments */
       bad_args = !verify_addr (args + 4, 2*sizeof(uint32_t*));
       break;
@@ -183,7 +188,20 @@ syscall_handler (struct intr_frame *f)
     case SYS_CLOSE:
       syscall_close (args[1]);
       break;
+    case SYS_CHDIR:
+      f->eax = syscall_chdir ((char *)args[1]);
+      break;
     case SYS_MKDIR:
+      f->eax = syscall_mkdir ((char *)args[1]);
+      break;
+    case SYS_READDIR:
+      f->eax = syscall_readdir (args[1], (char *)args[2]);
+      break;
+    case SYS_ISDIR:
+      f->eax = syscall_isdir (args[1]);
+      break;
+    case SYS_INUMBER:
+      f->eax = syscall_inumber (args[1]);
       break;
     default:
       ASSERT (false);
@@ -261,7 +279,7 @@ syscall_remove (const char *file)
 int
 syscall_open (const char *file)
 {
-  struct file *f;
+  struct FILE *f;
   int fd = 2;
   if(!verify_str(file))
     syscall_exit(-1);
@@ -277,7 +295,7 @@ syscall_open (const char *file)
     thread_current ()->open_files[fd] = f;
   else {
     lock_acquire (&fs_lock);
-    file_close(f);
+    filesys_close(f);
     lock_release (&fs_lock);
     fd = -1;
   }
@@ -289,12 +307,12 @@ int
 syscall_filesize (int fd)
 {
   int result = -1;
-  struct file *f;
+  struct FILE *f;
   if (!verify_fd (fd) || fd == 0 || fd == 1)
     syscall_exit (-1);
   f = thread_current ()->open_files[fd];
   lock_acquire (&fs_lock);
-  result = file_length (f);
+  result = filesys_length (f);
   lock_release (&fs_lock);
   return result;
 }
@@ -322,9 +340,13 @@ syscall_read (int fd, void* buffer, unsigned size)
         break;
       default:
         ASSERT(t->open_files != NULL);
-        struct file *f = t->open_files[fd];
+        struct FILE *f = t->open_files[fd];
+        if (filesys_isdir(f)) {
+          return 0;
+        }
+        struct file *file = f->ptr.file;
         lock_acquire (&fs_lock);
-        read_len = file_read (f, buffer, size);
+        read_len = file_read (file, buffer, size);
         lock_release (&fs_lock);
     }
   return read_len;
@@ -350,10 +372,14 @@ syscall_write (int fd, const void* buffer, unsigned size)
         write_len = size;
         break;
       default:
-        ASSERT(t->open_files != NULL);
-        struct file *f = t->open_files[fd];
+        ASSERT (t->open_files != NULL);
+        struct FILE *f = t->open_files[fd];
+        if (filesys_isdir (f)) {
+          return -1;
+        }
+        struct file *file = f->ptr.file;
         lock_acquire (&fs_lock);
-        write_len = file_write (f, buffer, size);
+        write_len = file_write (file, buffer, size);
         lock_release (&fs_lock);
     }
   return write_len;
@@ -365,7 +391,7 @@ syscall_seek (int fd, unsigned position)
   struct file *f;
   if (!verify_fd (fd) || fd == 0 || fd == 1)
     return;
-  f = thread_current ()->open_files[fd];
+  f = thread_current ()->open_files[fd]->ptr.file;
   lock_acquire (&fs_lock);
   file_seek (f, position);
   lock_release (&fs_lock);
@@ -374,13 +400,13 @@ syscall_seek (int fd, unsigned position)
 unsigned
 syscall_tell (int fd)
 {
-  struct file *f;
+  struct FILE *f;
   unsigned offset;
   if (!verify_fd (fd) || fd == 0 || fd == 1)
     syscall_exit (-1);
   f = thread_current ()->open_files[fd];
   lock_acquire (&fs_lock);
-  offset = file_tell (f);
+  offset = filesys_tell (f);
   lock_release (&fs_lock);
   return offset;
 }
@@ -388,12 +414,12 @@ syscall_tell (int fd)
 void
 syscall_close (int fd)
 {
-  struct file *f;
+  struct FILE *f;
   if (!verify_fd (fd) || fd == 0 || fd == 1)
     return;
   f = thread_current ()->open_files[fd];
   lock_acquire (&fs_lock);
-  file_close (f);
+  filesys_close (f);
   lock_release (&fs_lock);
   thread_current ()->open_files[fd] = NULL;
 }
@@ -404,4 +430,42 @@ syscall_mkdir (const char *dir)
   if (!verify_str (dir))
     return false;
   return filesys_mkdir(dir);
+}
+
+bool
+syscall_chdir (const char *dir)
+{
+  if (!verify_str (dir))
+    return false;
+  return filesys_chdir(dir);
+}
+
+bool
+syscall_readdir (int fd, char *name)
+{
+  if (!verify_fd (fd) || fd == 0 || fd == 1)
+    syscall_exit (-1);
+  if (!verify_addr (name, READDIR_MAX_LEN + 1))
+    syscall_exit (-1);
+  if (!syscall_isdir (fd))
+    syscall_exit (-1);
+  
+  return filesys_readdir (thread_current ()->open_files[fd], name);
+}
+
+bool
+syscall_isdir (int fd)
+{
+  if (!verify_fd (fd) || fd == 0 || fd == 1)
+    syscall_exit (-1);
+  return filesys_isdir (thread_current ()->open_files[fd]);
+}
+
+int
+syscall_inumber (int fd)
+{
+  if (!verify_fd (fd) || fd == 0 || fd == 1)
+    syscall_exit (-1);
+  
+  return filesys_inumber (thread_current ()->open_files[fd]);
 }

@@ -108,9 +108,6 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
-  #ifdef USERPROG
-  initial_thread->cwd = dir_open_root();
-  #endif
   
 }
 
@@ -237,7 +234,7 @@ thread_create (const char *name, int priority,
     return -1;
   init_wait_status (ws, tid);
   list_push_back (&thread_current ()->children, &t->wait_status->elem);
-  t->cwd = dir_reopen (thread_current ()->cwd);
+  
 #endif
   /* Stack frame for kernel_thread(). */
   kf = alloc_frame (t, sizeof *kf);
@@ -264,6 +261,7 @@ thread_create (const char *name, int priority,
 
 #ifdef USERPROG
   if (strcmp (name, "idle")) {
+    t->cwd = dir_reopen (thread_current ()->cwd);
     sema_down (&ws->dead);
     tid = ws->tid;
     if (tid == -1) {
