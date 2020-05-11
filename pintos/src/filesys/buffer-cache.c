@@ -101,8 +101,9 @@ cache_put (struct block *block, block_sector_t sector, off_t sector_ofs,
     if (hit_entry->modified) {
       block_write (block, hit_entry->old_sector, hit_entry->buffer);
     }
-    hit_entry->modified = true;
+    hit_entry->modified = false;
     put_buffer (hit_entry, sector_ofs, buffer, size);
+    block_write (block, sector, buffer);
   } else {
     if (hit_entry->modified) {
       block_write (block, hit_entry->old_sector, hit_entry->buffer);

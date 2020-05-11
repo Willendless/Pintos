@@ -10,7 +10,6 @@
 #include <random.h>
 #include "tests/lib.h"
 #include "tests/main.h"
-#include "threads/fixed-point.h"
 
 #define FILE_SIZE 10240
 static char buf[FILE_SIZE];
@@ -96,9 +95,6 @@ test_main (void)
   cache_stat (&hit_cnt, &read_cnt, &write_cnt);
   cold_hit_rate = hit_cnt * 100 / (read_cnt + write_cnt);
 
-  msg ("close \"cachehit\"");
-  close (fd);
-
   CHECK ((fd = open ("cachehit")) > 1, "open \"cachehit\"");
   msg ("hot read \"cachehit\"");
   r_ofs = 0;
@@ -110,9 +106,6 @@ test_main (void)
 
   cache_stat (&hit_cnt, &read_cnt, &write_cnt);
   hot_hit_rate = hit_cnt * 100 / (read_cnt + write_cnt);
-
-  msg ("close \"cachehit\"");
-  close (fd);
 
   CHECK (cold_hit_rate < hot_hit_rate, "compare hit rate (must better)");
 }

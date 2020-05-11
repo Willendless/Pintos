@@ -251,6 +251,11 @@ thread_create (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
 
+#ifdef USERPROG
+  if (strcmp (name, "idle"))
+    t->cwd = dir_reopen (thread_current ()->cwd);
+#endif
+
   /* Add to run queue. */
   thread_unblock (t);
 
@@ -261,7 +266,6 @@ thread_create (const char *name, int priority,
 
 #ifdef USERPROG
   if (strcmp (name, "idle")) {
-    t->cwd = dir_reopen (thread_current ()->cwd);
     sema_down (&ws->dead);
     tid = ws->tid;
     if (tid == -1) {
